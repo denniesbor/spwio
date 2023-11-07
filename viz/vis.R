@@ -11,17 +11,8 @@ library(patchwork)
 library(sf)
 library(sp)
 library(viridis)
+library(RColorBrewer)
 library(ggpubr)
-library(geojsonio)
-
-# install.packages("sf")
-# install.packages("sp")
-# install.packages("patchwork")
-
-
-# install.packages("ggpubr")
-# install.packages("viridis")
-
 
 options(tigris_use_cache = FALSE)
 
@@ -29,154 +20,103 @@ folder = dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'data')
 setwd(data_directory)
 
-# JSON mapper
-json_file <- fromJSON("json_mapper.json")
+# NERC GDF
+nerc_geojson <- st_read("nerc_gdf.geojson")
 
+# business data at ZCTA levels
+df_zcta_stats <- read.csv("df_zcta.csv")
+
+# state gdp, and business establishments at state_levels
+df_rto_stats <-
+  read.csv("df_rto_stats.csv")
+
+# US State Data From Tigris
 # Get the congressional districts
-congressional_districts <-
-  tigris::congressional_districts(cb = TRUE,
-                                  year = 2019,
-                                  resolution = "20m")
+state_shp <-
+  tigris::states(cb = TRUE,
+                 year = 2020,
+                 resolution = "20m")
 
-shape_data <- tigris::shift_geometry(congressional_districts)
+state_shp <- tigris::shift_geometry(state_shp)
+state_shp <- rename(state_shp, STABBR = STUSPS)
 
-# Congress data
-cd116_congress_bios <- read.csv("cd116_bio_bb.csv")
+# exclude non contigous US States
+non_cont_fips_codes <- c('02', '15', '72', '66', '60', '69', '78', '78')
+state_shp_filtered <- state_shp %>% 
+  filter(!STATEFP %in% non_cont_fips_codes)
 
-# Copngressional demographic data
-cd_demogr_df <-
-  read.csv("congressional_district_demographic_data.csv")
+# st_write(state_shp_filtered, 'state_shp_filtered.geojson', driver = 'GeoJSON')
 
-# Broadband demand and supply data
-broadband = read.csv("broadband_demand_supply_v2.csv")
-broadband <- broadband %>%
-  rename(district = cd116)
+### Merge the NERC JSON with business data from ZCTA regions ###
 
-data <- cd_demogr_df %>%
-  inner_join(broadband, by = c("state", "district")) %>%
-  mutate(new_index = row_number()) %>%
-  select(new_index, everything()) %>%
-  rename(index = new_index)
+merged_nerc_zcta <- nerc_geojson %>%
+  inner_join(df_zcta_stats, by = c("REGION_ID", "REGIONS"))
 
-# Use mutate to create a new column 'state_code' by applying a function to each value in the 'state' column
-cd116_congress_bios <- cd116_congress_bios %>%
-  mutate(state_code = sapply(state, function(state)
-    json_file$state_code[[state]]))
+merged_nerc_bg <- nerc_geojson %>%
+  inner_join(df_rto_stats, by = c("REGION_ID", "REGIONS"))
 
-data <- data %>%
-  mutate(state_code = sapply(state, function(state)
-    json_file$state_code[[state]]))
+# groupby the regions of NERC RTOs, and sum  the population, number of business, etc
 
-# Exclude states not within the US. highland
-excluded_states <- c("AS", "PR", "VI") # AK, Hi
-data <- data[!data$state %in% excluded_states,]
-cd116_congress_bios <-
-  cd116_congress_bios[!cd116_congress_bios$state %in% excluded_states,]
-
-# median value
-median_value <- median(data$`avgmaxaddown..cd.`)
-
-#remove outliers from the avg broadband speed (Minnessota data)
-outlier_threshold <- 600
-
-# Replace outliers with the median
-data$`avgmaxaddown..cd.`[data$`avgmaxaddown..cd.` > outlier_threshold] <-
-  median_value
-
-# Make ratios as percentages
-data$cd_urban_pop_ratio <- data$cd_urban_pop_ratio * 100
-data$percentage_adv_tech..cd. <- data$percentage_adv_tech..cd. * 100
-
-# Create the geoid column
-data$geoid <-
-  paste0(sprintf("%02d", as.numeric(data$state_code)), sprintf("%02d", as.numeric(data$district)))
-
-# Create the geoid column for the congress bios
-cd116_congress_bios$geoid <-
-  paste0(sprintf("%02d", as.numeric(cd116_congress_bios$state_code)), sprintf("%02d", as.numeric(cd116_congress_bios$district)))
-
-
-# Mutate party labels
-cd116_congress_bios <- cd116_congress_bios %>%
-  mutate(party_factor = factor(
-    party,
-    levels = c("R", "D", "I"),
-    labels = c(1, 0, 3)
-  ))
-
-# Reorder and mutate ideology_cluster from left -> right
-cd116_congress_bios$ideology_cluster <- factor(
-  cd116_congress_bios$ideology_cluster,
-  
-  levels = c(
-    "Far Left",
-    "Left Centrist",
-    "Centrist",
-    "Right Centrist",
-    "Far Right"
+summarised_rto_df <- merged_nerc_zcta %>%
+  group_by(REGIONS) %>%
+  summarise(
+    Total_EMP = round(sum(EMP, na.rm = TRUE) / 1e6, digits = 0),
+    Total_AP = round(sum(AP, na.rm = TRUE) / 1e6, digits = 0),
+    Total_EST = round(sum(EST, na.rm = TRUE) / 1e4, digits = 0),
+    Total_POP20 = round(sum(POP20, na.rm = TRUE) / 1e6, digits = 0),
+    Total_ZCTAGDP = round(sum(ZCTAGDP, na.rm = TRUE) / 1e3, digits = 0)
   )
-)
 
-# Step 3: Merging the broadband and demographic data with shp files
-merged_data <- shape_data %>%
-  inner_join(data, by = c("GEOID" = "geoid"))
+print(summarised_rto_df)
 
-merged_congress_bios <- shape_data %>%
-  left_join(cd116_congress_bios, by = c("GEOID" = "geoid"))
+#### Visualizations ####
+#### 1. Analysis of business data at zcta resolution ####
 
-# # Add centroids to the data
-# merged_data$geometry_centroid <- st_centroid(merged_data$geometry)
-#
-# # Add centroids to the data
-# merged_congress_bios$geometry_centroid <-
-#   st_centroid(merged_congress_bios$geometry)
+# Regional Transmission Operators
+# color palette
+colors <-
+  colorRampPalette(brewer.pal(9, "Set1"))(length(unique(summarised_rto_df$REGIONS)))
 
-
-# Create legend breaks based on the minimum and maximum values
-create_breaks <- function(data) {
-  breaks = quantile(data, probs = c(0, 0.25, 0.5, 0.75, 1))
-  labels = round(breaks, 2)  # Rounding to 2 decimal places, adjust as necessary
-  return(list(breaks = breaks, labels = labels))
-}
-
-# Political ideologies in the US. Congress
-plot0 <- ggplot(merged_congress_bios) +
-  geom_sf(aes(fill = ideology_cluster),
-          linewidth = 0.0001,
-          color = "white") +
+plot1 <- ggplot(data = summarised_rto_df) +
+  geom_sf(data = state_shp_filtered, fill = NA, color = "black", size = 0.25, linewidth=0.1) +
+  geom_sf(
+    aes(fill = as.factor(REGIONS)),
+    color = "white",
+    linewidth = 0.5,
+    size = 0.25,
+    alpha = 0.9
+  ) +
   theme_void() +
   scale_fill_manual(
-    values = c(
-      "Na" = "grey50",
-      "Far Left" = "#2166ac",
-      "Left Centrist" = "#4393c3",
-      "Centrist" = "#fddbc7",
-      "Right Centrist" = "#d6604d",
-      "Far Right" = "#b2182b"
-    ),
-    name = "Ideology",
-    labels = c(
-      "Far Left",
-      "Left Centrist",
-      "Centrist",
-      "Right Centrist",
-      "Far Right",
-      "NA"
-    ),
+    values = colors,
+    name = "Transmission Regions",
     guide = guide_legend(
-      keyheight = unit(3, units = "mm"),
-      label.position = "bottom",
-      title.position = 'top',
-      nrow = 1
+      title.position = "top",
+      title.hjust = 0,
+      label.hjust = .0,
+      keywidth = 1.2,
+      keyheight = 0.7,
+      direction = "vertical"
     )
   ) +
-  labs(title = "(A) 116th Congressional \nDistricts Ideologies") +
+  labs(title = "(A) FERC Order No.1000 Transmission Planning Regions") +
   theme(
     text = element_text(color = "#22211d"),
     plot.margin = margin(0, 0, 0, 0, "cm"),
     plot.background = element_rect(fill = "#f5f5f2", color = NA),
     panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
+    legend.background = element_rect(
+      fill = "#f5f5f2",
+      color = "black",
+      linetype = "solid"
+    ),
+    legend.position = c(0.95,-0.1),
+    legend.justification = c(1, 0),
+    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 8),
+    legend.key.height = unit(0.5, "lines"),
+    legend.key.width = unit(1.2, "lines"),
+    legend.margin = margin(3, 3, 3, 3),
     plot.title = element_text(
       size = 10,
       hjust = 0.01,
@@ -186,300 +126,166 @@ plot0 <- ggplot(merged_congress_bios) +
         l = 2,
         unit = "cm"
       )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
+    )
   ) +
   coord_sf()
-
-print(plot0)
-
-# Plot 1: Choropleth Urban Population
-plot1 <- ggplot(merged_data) +
-  geom_sf(aes(fill = cd_urban_pop_ratio),
-          linewidth = 0.0001,
-          color = "white") +
-  theme_void() +
-  scale_fill_viridis_c(trans = "sqrt",
-                       direction = -1,
-                       name = "Urban Population (%)") +
-  labs(title = "(B) Urban Population per \nCongressional District") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(3, "mm"),
-    legend.key.width = unit(0.05, "npc"),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
-  ) +
-  guides(fill = guide_colourbar(title.position = 'top')) +
-  coord_sf()
-
 print(plot1)
 
-# Plot 2: Median Broadband \nDownload Speed
-plot2 <- ggplot(merged_data) +
-  geom_sf(aes(fill = avgmaxaddown..cd.),
-          linewidth = 0.0001,
-          color = "white") +
-  theme_void() +
-  scale_fill_viridis_c(trans = "sqrt",
-                       direction = -1,
-                       name = "Download Speed (Mbps)") +
-  labs(title = "(C) Median Broadband \nDownload Speed") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(3, "mm"),
-    legend.key.width = unit(0.05, "npc"),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
-  ) +
-  guides(fill = guide_colourbar(title.position = 'top')) +
-  coord_sf()
+# Continous variables plots
+
+# color ramp
+brewer_color_ramp <- colorRampPalette(brewer.pal(9, "YlOrRd"))
+num_colors <- length(unique(summarised_rto_df$REGIONS))
+
+
+create_sf_plot <-
+  function(data,
+           data_2,
+           fill_variable,
+           legend_title,
+           plot_title) {
+    plot <- ggplot(data) +
+      geom_sf(data = data_2, fill = NA, color = "black", size = 0.25, linewidth=0.1) +
+      geom_sf(aes(fill = .data[[fill_variable]]),
+              linewidth = 0.5,
+              alpha=0.9,
+              color = "white") +
+      theme_void() +
+      scale_fill_gradientn(colors = brewer_color_ramp(num_colors),
+                           name = legend_title) +
+      labs(title = plot_title) +
+      theme(
+        text = element_text(color = "#22211d"),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
+        plot.background = element_rect(fill = "#f5f5f2", color = NA),
+        panel.background = element_rect(fill = "#f5f5f2", color = NA),
+        legend.background = element_rect(fill = "#f5f5f2", color = NA),
+        plot.title = element_text(
+          size = 10,
+          hjust = 0.01,
+          margin = margin(
+            b = -0.1,
+            t = 0.4,
+            l = 2,
+            unit = "cm"
+          )
+        ),
+        legend.position = c(0.3, 0.1),
+        legend.justification = c(0.5, 0.5),
+        legend.text = element_text(size = 9),
+        legend.key.height = unit(4, "mm"),
+        legend.key.width = unit(0.05, "npc"),
+        legend.title = element_text(size = 8)  # Adjusting legend title size
+      ) +
+      guides(fill = guide_colourbar(title.position = 'top', direction = "horizontal")) +
+      coord_sf()
+    
+    return(plot)
+  }
+
+# Plot 1 Employees
+plot2 <- create_sf_plot(
+  data = summarised_rto_df,
+  state_shp_filtered,
+  fill_variable = "Total_EMP",
+  legend_title = "Employment (Millions)",
+  plot_title = "(A) Total Number of Employees in the Regions"
+)
 
 print(plot2)
 
-# Plot 3: Advanced Broadband Technology
-plot3 <- ggplot(merged_data) +
-  geom_sf(aes(fill = percentage_adv_tech..cd.),
-          linewidth = 0.0001,
-          color = "white") +
-  theme_void() +
-  scale_fill_viridis_c(
-    trans = "sqrt",
-    direction = -1,
-    name = "Advanced Broadband (%)"
-  ) +
-  labs(title = "(D) Advanced Broadband Technology \n (DOCSIS 3.0, 3.1, and Fiber)") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(3, "mm"),
-    legend.key.width = unit(0.05, "npc"),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
-  ) +
-  guides(fill = guide_colourbar(title.position = 'top')) +
-  coord_sf()
+# Plot 2: Choropleth Total Annual Payroll Per Region
+plot3 <- create_sf_plot(
+  data = summarised_rto_df,
+  fill_variable = "Total_AP",
+  legend_title = "Payroll ($B)",
+  plot_title = "(B) Annual Employee Payroll"
+)
 
 print(plot3)
 
-# Plot 4: Adult Age 25+ High School Education
-plot4 <- ggplot(merged_data) +
-  geom_sf(
-    aes(fill = X2014_2018_acs_educational_attainment_among_adults_25._and_median_household_income_high_school_or_greater),
-    linewidth = 0.0001,
-    color = "white"
-  ) +
-  theme_void() +
-  scale_fill_viridis_c(
-    trans = "sqrt",
-    direction = -1,
-    name = "Education (%)"
-  ) +
-  labs(title = "(E) Adult Age 25+ \nHigh School Education") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(3, "mm"),
-    legend.key.width = unit(0.05, "npc"),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
-  ) +
-  guides(fill = guide_colourbar(title.position = 'top')) +
-  coord_sf()
+# Plot 3: Business Establishments in the Region
+plot4 <- create_sf_plot(
+  data = summarised_rto_df,
+  fill_variable = "Total_EST",
+  legend_title = "Establishment (10000)",
+  plot_title = "(C) Total Number of Business Establishments"
+)
 
 print(plot4)
 
-# Plot 5: Median Income
-plot5 <- ggplot(merged_data) +
-  geom_sf(aes(fill = median_income),
-          linewidth = 0.0001,
-          color = "white") +
-  theme_void() +
-  scale_fill_viridis_c(trans = "sqrt",
-                       direction = -1,
-                       # breaks = c(29000, 40000, 60000, 80000, 100000, 120000, 140000),
-                       name = "Median Income($)") +
-  labs(title = "(F) Median Income") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(3, "mm"),
-    legend.key.width = unit(0.05, "npc"),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
-  ) +
-  guides(fill = guide_colourbar(title.position = 'top')) +
-  coord_sf()
+# Plot 4: Population in the Regions
+plot5 <- create_sf_plot(
+  data = summarised_rto_df,
+  fill_variable = "Total_POP20",
+  legend_title = "Consumers (Millions)",
+  plot_title = "(D) Total Number of Consumers in the Regions"
+)
 
 print(plot5)
 
-# Frequency of tweets
-plot6 <- ggplot(merged_congress_bios) +
-  geom_sf(aes(fill = bb_tweet_frequency),
-          linewidth = 0.0001,
-          color = "white") +
-  theme_void() +
-  scale_fill_viridis_c(
-    trans = "sqrt",
-    direction = -1,
-    name = "Frequency"
-  ) +
-  labs(title = "(B) Frequency of Broadband-Related Tweets \nby Congressional District Member") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = "bottom",
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(3, "mm"),
-    legend.key.width = unit(0.05, "npc"),
-    # Adjust size and color here
-    legend.title = element_text(size = 10)  # Adjusting legend title size
-  ) +
-  guides(fill = guide_colourbar(title.position = 'top')) +
-  coord_sf()
+# Plot 4: Regional Aggregation of the State GDP Apportionment by Population
+plot6 <- create_sf_plot(
+  data = summarised_rto_df,
+  fill_variable = "Total_ZCTAGDP",
+  legend_title = "GDP ($B)",
+  plot_title = "(A) Regional Aggregation of Apportionment of STATE GDP by Population"
+)
 
 print(plot6)
 
-# Combined plots
-combined_plot <- plot0 + plot1 + plot2 + plot3 + plot4 + plot5
+# save plot 1
+path_out = file.path(folder, 'figures', 'regional_planning.png')
+ggsave(path_out,
+       plot1,
+       width = 10,
+       height = 8)
 
+# save the plots
+combined_plot <- plot2 + plot3 + plot4 + plot5
 # Adjust the layout
-combined_plot <- combined_plot + plot_layout(ncol = 2, nrow = 3) &
+combined_plot <- combined_plot + plot_layout(ncol = 2, nrow = 2) &
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
-path_out = file.path(folder, 'figures', 'choropleth.png')
+print(combined_plot)
+path_out = file.path(folder, 'figures', 'emp_est_ap.png')
 ggsave(path_out,
        combined_plot,
-       width = 8.27,
-       height = 11.69)
+       width = 10.5,
+       height = 7.5)
 
-# Combine the plots using patchwork
-combined_plot_frequency <- plot0 + plot6
-combined_plot_frequency <-
-  combined_plot_frequency + plot_layout(ncol = 2, nrow = 1) &
-  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-print(combined_plot_frequency)
-path_out = file.path(folder, 'figures', 'frequency_ideology.png')
+# save plot 6
+path_out = file.path(folder, "figures", 'population_based_gdp.png')
 ggsave(path_out,
-       combined_plot_frequency,
-       width = 8.27,
-       height = 6)
+       plot6,
+       width = 10,
+       height = 8)
 
 
-histplot <-
-  ggplot(data = merged_congress_bios %>% filter(bb_tweet_frequency > 0),
-         aes(x = bb_tweet_frequency, fill = party)) +
-  geom_histogram(binwidth = 10) +
-  theme_minimal() +
-  labs(title = "Tweet Frequency on Broadband\n by Congress Member", x = "Frequency", y = "Count") +
-  scale_fill_manual(values = c(
-    "R" = "red",
-    "D" = "blue",
-    "O" = 'green'
-  ),
-  name = "Party")
+#### Visualizations at state level ####
 
-print(histplot)
+# Plot 6 State Employees
+plot6 <- create_sf_plot_st(
+  data = grouped_df,
+  fill_variable = "Total_EMP",
+  legend_title = "Employment (Millions)",
+  plot_title = "(A) Total Number of Employees in the Regions"
+)
 
-eda_hist <-
-  ggplot(data = merged_data, aes(x = cd_urban_pop_ratio)) +
-  geom_histogram(bins = 10,
-                 fill = "blue",
-                 alpha = 0.7) +
-  theme_minimal()
+precision <- min(st_precision(state_shp_filtered), st_precision(nerc_geojson))
+state_shp_filtered <- st_set_precision(state_shp_filtered, precision)
+nerc_geojson <- st_set_precision(nerc_geojson, precision)
 
-print(eda_hist)
+# Step 3: make geometries valid
+state_shp_filtered <- st_make_valid(state_shp_filtered)
+nerc_geojson <- st_make_valid(nerc_geojson)
 
+# Step 4: Simplify geometries with the same tolerance (if necessary)
+tolerance <- 0.01 # Choose an appropriate tolerance for your data
+state_shp_filtered <- st_simplify(state_shp_filtered, dTolerance = tolerance)
+nerc_geojson <- st_simplify(nerc_geojson, dTolerance = tolerance)
+
+test_plot <- ggplot() +
+  geom_sf(data = state_shp_filtered, fill = NA, color = "black", size = 0.25) +
+  geom_sf(data = nerc_geojson, fill = 'lightblue', color = "black", size = 0.25)
+print(test_plot)
