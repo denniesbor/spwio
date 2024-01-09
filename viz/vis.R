@@ -152,6 +152,18 @@ create_sf_plot <-
            fill_variable,
            legend_title,
            plot_title) {
+    
+    # Get unique values
+    unique_values <- unique(data[[fill_variable]])
+    
+    # Create a Brewer color palette
+    num_colors <- length(unique_values) - 1
+    colors <- brewer_color_ramp(num_colors)
+    
+    # Create a color gradient, including grey for zero
+    gradient_colors <- c("grey", colors)
+    gradient_breaks <- c(0, sort(unique_values[unique_values != 0]))
+    
     plot <- ggplot(data) +
       geom_sf(data = data_2, fill = NA, color = "dodgerblue", linewidth=0.1, alpha=1) +
       geom_sf(aes(fill = .data[[fill_variable]]),
@@ -159,7 +171,8 @@ create_sf_plot <-
               alpha=0.8,
               color = "white") +
       theme_void() +
-      scale_fill_gradientn(colors = brewer_color_ramp(num_colors),
+      scale_fill_gradientn(colors = gradient_colors, 
+                           values = scales::rescale(gradient_breaks),
                            name = legend_title) +
       labs(title = plot_title) +
       theme(
@@ -477,5 +490,184 @@ ggsave(path_out,
        combined_plot,
        width = 10.5,
        height = 7.5)
+
+
+## Plot direct impact, business establishments, and population affected ##
+
+# Load the number of establishments affected in each scenario
+df_est <- read.csv("est_regions.csv")
+
+# Merge with the grid regions df
+merged_nerc_est <- nerc_geojson %>%
+  inner_join(df_est, by = c("REGIONS"))
+
+# Load the population size affected in each scenario
+df_pop <-
+  read.csv("pop_regions.csv")
+
+# Merge with the grid regions df
+merged_nerc_pop <- nerc_geojson %>%
+  inner_join(df_pop, by = c("REGIONS"))
+
+# Load the GDP shock
+df_gdp_shock <- read.csv("gdp_regions.csv")
+
+# Merge with the grid regions df
+merged_nerc_gdp <- nerc_geojson %>%
+  inner_join(df_gdp_shock, by = c("REGIONS"))
+
+create_plot <-
+  function(data,
+           data_2,
+           fill_variable,
+           legend_title,
+           plot_title) {
+    
+    # Get unique values
+    unique_values <- unique(data[[fill_variable]])
+    
+    # Create a Brewer color palette
+    num_colors <- length(unique_values) - 1
+    colors <- brewer_color_ramp(num_colors)
+    
+    # Create a color gradient, including grey for zero
+    gradient_colors <- c("grey", colors)
+    gradient_breaks <- c(0, sort(unique_values[unique_values != 0]))
+    
+    plot <- ggplot(data) +
+      geom_sf(data = data_2, fill = NA, color = "dodgerblue", linewidth=0.1, alpha=1) +
+      geom_sf(aes(fill = .data[[fill_variable]]),
+              linewidth = 0.34,
+              alpha=0.8,
+              color = "white") +
+      theme_void() +
+      scale_fill_gradientn(colors = gradient_colors, 
+                           values = scales::rescale(gradient_breaks),
+                           name = legend_title) +
+      labs(title = plot_title) +
+      theme(
+        text = element_text(color = "#22211d"),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
+        plot.background = element_rect(fill = "#f5f5f2", color = NA),
+        panel.background = element_rect(fill = "#f5f5f2", color = NA),
+        legend.background = element_rect(fill = "#f5f5f2", color = NA),
+        plot.title = element_text(
+          size = 9,
+          hjust = 0.01,
+          margin = margin(
+            b = -0.1,
+            t = 0.4,
+            l = 2,
+            unit = "cm"
+          )
+        ),
+        legend.position = c(0.3, 1),
+        legend.justification = c(0.5, 0.5),
+        legend.text = element_text(size = 8),
+        legend.key.height = unit(3, "mm"),
+        legend.key.width = unit(0.02, "npc"),
+        legend.title = element_text(size = 8)  # Adjusting legend title size
+      ) +
+      guides(fill = guide_colourbar(title.position = 'top', direction = "horizontal")) +
+      coord_sf() +
+      theme(text = element_text(family = "Times New Roman"))
+    
+    
+    return(plot)
+  }
+
+
+# Function to create a plot for a given percentage column
+create_perc_plot <- function(data, shape, perc_col, legend_title_base, plot_title_base) {
+  percentage = gsub("perc", "", perc_col)  # Extract the percentage value
+  legend_title = sprintf("%s", legend_title_base)
+  plot_title = sprintf("%s (%s%%)", plot_title_base, percentage)
+  
+  plot <- create_plot(
+    data = data,
+    shape,
+    fill_variable = perc_col,
+    legend_title = legend_title,
+    plot_title = plot_title
+  )
+  
+  return(plot)
+}
+
+
+# List of all columns starting with 'perc'
+perc_columns <- grep("^perc[1-9]", names(merged_nerc_pop), value = TRUE)
+
+# # Loop through each perc column and create a plot
+# plots <- lapply(perc_columns, function(col) {
+#   create_perc_plot(data, shape, "perc25", "Establishments (Thousands)", "Establishments without Power")
+# })
+
+# For Establishments
+plot_establishments <- lapply(perc_columns, function(col) {
+  create_perc_plot(merged_nerc_est, state_shp_filtered, col, "Establishments (Millions)", "Establishments without Power")
+})
+
+# For GDP Shock
+plot_gdp_shock <- lapply(perc_columns, function(col) {
+  create_perc_plot(merged_nerc_gdp, state_shp_filtered, col, "GDP Shock ($T)", "Daily GDP Loss")
+})
+
+# For Population
+plot_population <- lapply(perc_columns, function(col) {
+  create_perc_plot(merged_nerc_pop, state_shp_filtered, col, "Population (Millions)", "Population without Power")
+})
+
+interleave_lists <- function(...) {
+  lists <- list(...)
+  max_length <- max(sapply(lists, length))
+  result <- mapply(`[`, lists, rep(list(seq_len(max_length)), length(lists)), SIMPLIFY = FALSE)
+  do.call(c, result)
+}
+
+# Interleave the plots from each list
+combined_plots_list <- interleave_lists(plot_establishments, plot_population, plot_gdp_shock)
+
+# Function to rearrange the combined list of plots
+rearrange_plots_by_scenario <- function(combined_list) {
+  num_items = length(plot_population)
+  num_scenarios <- length(combined_list) / 3  # Assuming three categories
+  rearranged_list <- vector("list", length = length(combined_list))
+  
+  for (i in 1:num_scenarios) {
+    idx <- seq(i, length(combined_list), num_scenarios)
+    rearranged_list[((i-1)*3 + 1):(i*3)] <- combined_list[idx]
+  }
+  
+  return(rearranged_list)
+}
+
+plot12 <- plot_gdp_shock[[1]]
+plot13 <- plot_gdp_shock[[2]]
+plot14 <- plot_gdp_shock[[3]]
+plot15 <- plot_gdp_shock[[4]]
+plot16 <- plot_population[[1]]
+plot17 <- plot_population[[2]]
+plot18 <- plot_population[[3]]
+plot19 <- plot_population[[4]]
+plot20 <- plot_establishments[[1]]
+plot21 <- plot_establishments[[2]]
+plot22 <- plot_establishments[[3]]
+plot23 <- plot_establishments[[4]]
+
+
+# Rearrange the combined plots list by scenarios
+rearranged_plots_list <- rearrange_plots_by_scenario(combined_plots_list)
+
+combined_plot <- plot12 + plot16 + plot20 + plot13 + plot17 + plot21 + plot14 + plot18 + plot22 + plot15 + plot19 + plot23
+# Adjust the layout
+combined_plot <- combined_plot + plot_layout(ncol = 3, nrow = 4) &
+  theme(plot.margin = unit(c(0.2, 0, 0.2, 0), "cm"))
+
+# Print the combined plot
+print(combined_plot)
+
+path_out <- file.path(folder, 'figures', 'combined_plot.png')
+ggsave(path_out, combined_plot, width = 8, height = 12)
 
 dev.off()
