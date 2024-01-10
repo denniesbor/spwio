@@ -492,29 +492,7 @@ ggsave(path_out,
        height = 7.5)
 
 
-## Plot direct impact, business establishments, and population affected ##
-
-# Load the number of establishments affected in each scenario
-df_est <- read.csv("est_regions.csv")
-
-# Merge with the grid regions df
-merged_nerc_est <- nerc_geojson %>%
-  inner_join(df_est, by = c("REGIONS"))
-
-# Load the population size affected in each scenario
-df_pop <-
-  read.csv("pop_regions.csv")
-
-# Merge with the grid regions df
-merged_nerc_pop <- nerc_geojson %>%
-  inner_join(df_pop, by = c("REGIONS"))
-
-# Load the GDP shock
-df_gdp_shock <- read.csv("gdp_regions.csv")
-
-# Merge with the grid regions df
-merged_nerc_gdp <- nerc_geojson %>%
-  inner_join(df_gdp_shock, by = c("REGIONS"))
+### Plot direct impact, business establishments, and population affected ###
 
 create_plot <-
   function(data,
@@ -561,11 +539,11 @@ create_plot <-
             unit = "cm"
           )
         ),
-        legend.position = c(0.3, 1),
+        legend.position = c(0.3, 0),
         legend.justification = c(0.5, 0.5),
         legend.text = element_text(size = 8),
         legend.key.height = unit(3, "mm"),
-        legend.key.width = unit(0.02, "npc"),
+        legend.key.width = unit(0.03, "npc"),
         legend.title = element_text(size = 8)  # Adjusting legend title size
       ) +
       guides(fill = guide_colourbar(title.position = 'top', direction = "horizontal")) +
@@ -576,15 +554,19 @@ create_plot <-
     return(plot)
   }
 
-
 # Function to create a plot for a given percentage column
-create_perc_plot <- function(data, shape, perc_col, legend_title_base, plot_title_base) {
-  percentage = gsub("perc", "", perc_col)  # Extract the percentage value
-  legend_title = sprintf("%s", legend_title_base)
-  plot_title = sprintf("%s (%s%%)", plot_title_base, percentage)
+create_perc_plot <- function(data, shape, perc_col, legend_title_base, plot_title_base, include_percentage = TRUE) {
+  percentage <- gsub("perc", "", perc_col)  # Extract the percentage value
+  legend_title <- sprintf("%s", legend_title_base)
+  
+  if (include_percentage) {
+    plot_title <- sprintf("%s (%s%%)", plot_title_base, percentage)
+  } else {
+    plot_title <- plot_title_base
+  }
   
   plot <- create_plot(
-    data = data,
+    data,
     shape,
     fill_variable = perc_col,
     legend_title = legend_title,
@@ -594,80 +576,102 @@ create_perc_plot <- function(data, shape, perc_col, legend_title_base, plot_titl
   return(plot)
 }
 
+## 1. Using Supply (Establishments)
 
-# List of all columns starting with 'perc'
-perc_columns <- grep("^perc[1-9]", names(merged_nerc_pop), value = TRUE)
+# Load the number of establishments affected in each scenario
+df_est <- read.csv("est_regions.csv")
 
-# # Loop through each perc column and create a plot
-# plots <- lapply(perc_columns, function(col) {
-#   create_perc_plot(data, shape, "perc25", "Establishments (Thousands)", "Establishments without Power")
-# })
+# Merge with the grid regions df
+merged_nerc_est <- nerc_geojson %>%
+  inner_join(df_est, by = c("REGIONS"))
 
-# For Establishments
-plot_establishments <- lapply(perc_columns, function(col) {
-  create_perc_plot(merged_nerc_est, state_shp_filtered, col, "Establishments (Millions)", "Establishments without Power")
-})
+# Load the population size affected in each scenario
+df_pop <-
+  read.csv("regions_pop_est_loss_scenarios.csv")
 
-# For GDP Shock
-plot_gdp_shock <- lapply(perc_columns, function(col) {
-  create_perc_plot(merged_nerc_gdp, state_shp_filtered, col, "GDP Shock ($T)", "Daily GDP Loss")
-})
+# Merge with the grid regions df
+merged_nerc_pop <- nerc_geojson %>%
+  inner_join(df_pop, by = c("REGIONS"))
 
-# For Population
-plot_population <- lapply(perc_columns, function(col) {
-  create_perc_plot(merged_nerc_pop, state_shp_filtered, col, "Population (Millions)", "Population without Power")
-})
+# Load the GDP shock
+df_gdp_shock <- read.csv("regions_gdp_loss_est_scenarios.csv")
 
-interleave_lists <- function(...) {
-  lists <- list(...)
-  max_length <- max(sapply(lists, length))
-  result <- mapply(`[`, lists, rep(list(seq_len(max_length)), length(lists)), SIMPLIFY = FALSE)
-  do.call(c, result)
-}
+# Merge with the grid regions df
+merged_nerc_gdp <- nerc_geojson %>%
+  inner_join(df_gdp_shock, by = c("REGIONS"))
 
-# Interleave the plots from each list
-combined_plots_list <- interleave_lists(plot_establishments, plot_population, plot_gdp_shock)
-
-# Function to rearrange the combined list of plots
-rearrange_plots_by_scenario <- function(combined_list) {
-  num_items = length(plot_population)
-  num_scenarios <- length(combined_list) / 3  # Assuming three categories
-  rearranged_list <- vector("list", length = length(combined_list))
-  
-  for (i in 1:num_scenarios) {
-    idx <- seq(i, length(combined_list), num_scenarios)
-    rearranged_list[((i-1)*3 + 1):(i*3)] <- combined_list[idx]
-  }
-  
-  return(rearranged_list)
-}
-
-plot12 <- plot_gdp_shock[[1]]
-plot13 <- plot_gdp_shock[[2]]
-plot14 <- plot_gdp_shock[[3]]
-plot15 <- plot_gdp_shock[[4]]
-plot16 <- plot_population[[1]]
-plot17 <- plot_population[[2]]
-plot18 <- plot_population[[3]]
-plot19 <- plot_population[[4]]
-plot20 <- plot_establishments[[1]]
-plot21 <- plot_establishments[[2]]
-plot22 <- plot_establishments[[3]]
-plot23 <- plot_establishments[[4]]
+plot12 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc25", "Establishments (Millions)", "(A) Establishments without Power")
+plot13 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc25", "Population (Millions)", "(B) Population without Power", include_percentage=FALSE)
+plot14 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc25", "GDP Shock ($B)", "(C) Daily Loss", include_percentage=FALSE)
+plot15 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc50", "Establishments (Millions)", "(D) Establishments without Power")
+plot16 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc50", "Population (Millions)", "(E) Population without Power", include_percentage=FALSE)
+plot17 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc50", "GDP Shock ($B)", "(F) Daily Loss", include_percentage=FALSE)
+plot18 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc75", "Establishments (Millions)", "(G) Establishments without Power")
+plot19 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc75", "Population (Millions)", "(H) Population without Power", include_percentage=FALSE)
+plot20 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc75", "GDP Shock ($B)", "(I) Daily Loss", include_percentage=FALSE)
+plot21 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc100", "Establishments (Millions)", "(J) Establishments without Power")
+plot22 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc100", "Population (Millions)", "(K) Population without Power", include_percentage=FALSE)
+plot23 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc100", "GDP Shock ($B)", "(L) Daily Loss", include_percentage=FALSE)
 
 
-# Rearrange the combined plots list by scenarios
-rearranged_plots_list <- rearrange_plots_by_scenario(combined_plots_list)
-
-combined_plot <- plot12 + plot16 + plot20 + plot13 + plot17 + plot21 + plot14 + plot18 + plot22 + plot15 + plot19 + plot23
+combined_plot_est <- plot12 + plot13 + plot14 + plot15 + plot16 + plot17 + plot18 + plot19 + plot20 + plot21 + plot22 + plot23
 # Adjust the layout
-combined_plot <- combined_plot + plot_layout(ncol = 3, nrow = 4) &
-  theme(plot.margin = unit(c(0.2, 0, 0.2, 0), "cm"))
+combined_plot_est <- combined_plot_est + plot_layout(ncol = 3, nrow = 4) &
+  theme(plot.margin = unit(c(0.5, 0, 0.5, 0), "cm"))
 
 # Print the combined plot
-print(combined_plot)
+print(combined_plot_est)
 
-path_out <- file.path(folder, 'figures', 'combined_plot.png')
-ggsave(path_out, combined_plot, width = 8, height = 12)
+path_out <- file.path(folder, 'figures', 'establishment-daily-losses.png')
+ggsave(path_out, combined_plot_est, width = 8, height = 12)
+
+## 2. Using Demand (Population)
+
+# Load the population size affected in each scenario
+df_pop <-
+  read.csv("pop_regions.csv")
+
+# Merge with the grid regions df
+merged_nerc_pop <- nerc_geojson %>%
+  inner_join(df_pop, by = c("REGIONS"))
+
+# Load population percentage affected in each scenario
+df_est <- read.csv("regions_est_pop_scenarios.csv")
+
+# Merge with the grid regions df
+merged_nerc_est <- nerc_geojson %>%
+  inner_join(df_est, by = c("REGIONS"))
+
+# Load the GDP shock
+df_gdp_shock <- read.csv("regions_gdp_loss_pop_scenarios.csv")
+
+# Merge with the grid regions df
+merged_nerc_gdp <- nerc_geojson %>%
+  inner_join(df_gdp_shock, by = c("REGIONS"))
+
+plot24 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc25", "Population (Millions)", "(A) Population without Power")
+plot25 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc25", "Establishments (Millions)", "(B) Establishments without Power", include_percentage=FALSE)
+plot26 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc25", "GDP Shock ($B)", "(C) Daily Loss", include_percentage=FALSE)
+plot27 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc50", "Population (Millions)", "(D) Population without Power")
+plot28 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc50", "Establishments (Millions)", "(E) Establishments without Power", include_percentage=FALSE)
+plot29 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc50", "GDP Shock ($B)", "(F) Daily Loss", include_percentage=FALSE)
+plot30 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc75", "Population (Millions)", "(G) Population without Power")
+plot31 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc75", "Establishments (Millions)", "(H) Establishments without Power", include_percentage=FALSE)
+plot32 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc75", "GDP Shock ($B)", "(I) Daily Loss", include_percentage=FALSE)
+plot33 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, "perc100", "Population (Millions)", "(J) Population without Power")
+plot34 <- create_perc_plot(merged_nerc_est, state_shp_filtered, "perc100", "Establishments (Millions)", "(K) Establishments without Power")
+plot35 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, "perc100", "GDP Shock ($B)", "(L) Daily Loss", include_percentage=FALSE)
+
+combined_plot_pop <- plot24 + plot25 + plot26 + plot27 + plot28 + plot29 + plot30 + plot31 + plot32 + plot33 + plot34 + plot35
+
+# Adjust the layout
+combined_plot_pop <- combined_plot_pop + plot_layout(ncol = 3, nrow = 4) &
+  theme(plot.margin = unit(c(0.5, 0, 0.5, 0), "cm"))
+
+# Print the combined plot
+print(combined_plot_pop)
+
+path_out <- file.path(folder, 'figures', 'population-daily-losses.png')
+ggsave(path_out, combined_plot_pop, width = 8, height = 12)
 
 dev.off()
