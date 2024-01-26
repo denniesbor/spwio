@@ -1,161 +1,161 @@
 "Decile","Type","NAICSIndustries","Output","OutputPerc"
-15,"GDP","Agriculture, Forestry, Fishing and Hunting",0.14107654150109,0.135285339355165
-15,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.120714627606357,0.115759283486066
-15,"GDP","Utilities",0.0762672841716611,0.0731365066869058
-15,"GDP","Construction",0.392658201240383,0.376539553919981
-15,"GDP","Manufacturing",1.65414529450634,1.58624251153981
-15,"GDP","Wholesale Trade",0.443172292982335,0.424980038573307
-15,"GDP","Retail Trade",0.515113670479614,0.493968217365046
-15,"GDP","Transportation and Warehousing",0.361068737097941,0.346246839546024
-15,"GDP","Information",0.467888316616795,0.448681467665063
-15,"GDP","Finance and Insurance",0.602477684074272,0.577745931936333
-15,"GDP","Real Estate and Rental and Leasing",0.555414594904409,0.532614785952023
-15,"GDP","Professional, Scientific, and Technical Services",0.475663306479431,0.456137293636254
-15,"GDP","Management of Companies and Enterprises",0.147265044478442,0.141219803841489
-15,"GDP","Administrative and Support and Waste ...",0.277063520816018,0.265690043416909
-15,"GDP","Educational Services",0.0577629427323611,0.0553917697907279
-15,"GDP","Health Care and Social Assistance",0.482161425275694,0.462368664189918
-15,"GDP","Arts, Entertainment, and Recreation",0.0728200796970619,0.0698308102032051
-15,"GDP","Accommodation and Food Services",0.289156746890606,0.277286841693869
-15,"GDP","Other Services (except Public Administration)",-0.048082966657216,-0.0461091574276671
-15,"GDP","Unclassified",0.393918969642512,0.377748567688786
-15,"Leon","Agriculture, Forestry, Fishing and Hunting",0.143914291731294,0.13800659973491
-15,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.266874357305057,0.255919145798788
-15,"Leon","Utilities",0.192277357489877,0.184384358175746
-15,"Leon","Construction",0.163122019095794,0.156425848513615
-15,"Leon","Manufacturing",1.61305904753152,1.54684285794982
-15,"Leon","Wholesale Trade",0.42624408954321,0.408746739099364
-15,"Leon","Retail Trade",0.079164221772561,0.0759145247915348
-15,"Leon","Transportation and Warehousing",0.4163241607761,0.399234024119552
-15,"Leon","Information",0.473408163337705,0.453974724282224
-15,"Leon","Finance and Insurance",0.887931090021295,0.851481455097939
-15,"Leon","Real Estate and Rental and Leasing",0.659879852990973,0.632791737702407
-15,"Leon","Professional, Scientific, and Technical Services",0.832000764521332,0.797847073470792
-15,"Leon","Management of Companies and Enterprises",0.306705722424064,0.294115430523154
-15,"Leon","Administrative and Support and Waste ...",0.624477230443997,0.598842395349883
-15,"Leon","Educational Services",-0.0127396894886087,-0.0122167243214744
-15,"Leon","Health Care and Social Assistance",-0.0444268613285512,-0.0426031354849416
-15,"Leon","Arts, Entertainment, and Recreation",0.0483688526668723,0.0463833077961247
-15,"Leon","Accommodation and Food Services",0.151301482118712,0.145090545427153
-15,"Leon","Other Services (except Public Administration)",-0.0394661897661223,-0.037846099845905
-15,"Leon","Unclassified",0.357289788434635,0.342623016996354
-30,"GDP","Agriculture, Forestry, Fishing and Hunting",0.304304229959671,0.291812519496647
-30,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.342206926041759,0.328159307186373
-30,"GDP","Utilities",0.23314915584487,0.223578366277145
-30,"GDP","Construction",0.862851196884351,0.827431093372871
-30,"GDP","Manufacturing",3.87931466487207,3.720068519674
-30,"GDP","Wholesale Trade",0.961860163071887,0.92237573439798
-30,"GDP","Retail Trade",1.11793754583825,1.07204612940869
-30,"GDP","Transportation and Warehousing",0.824268948148226,0.79043264871429
-30,"GDP","Information",1.0287280432782,0.986498683326395
-30,"GDP","Finance and Insurance",1.2904398757498,1.23746722630637
-30,"GDP","Real Estate and Rental and Leasing",1.19836318184343,1.14917028728814
-30,"GDP","Professional, Scientific, and Technical Services",1.03826670683206,0.995645784057304
-30,"GDP","Management of Companies and Enterprises",0.323674839819848,0.310387964432901
-30,"GDP","Administrative and Support and Waste ...",0.607223257305861,0.582296699046436
-30,"GDP","Educational Services",0.117844007613167,0.113006502649463
-30,"GDP","Health Care and Social Assistance",1.03253193838526,0.990146428266512
-30,"GDP","Arts, Entertainment, and Recreation",0.161875526072233,0.155230524118064
-30,"GDP","Accommodation and Food Services",0.625762385537059,0.60007479473421
-30,"GDP","Other Services (except Public Administration)",-0.0730927318589918,-0.0700922699743346
-30,"GDP","Unclassified",0.916042404409822,0.878438798014814
-30,"Leon","Agriculture, Forestry, Fishing and Hunting",0.271052356042937,0.259925637388854
-30,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.608553453222475,0.583572290325279
-30,"Leon","Utilities",0.427556723858348,0.410005489681731
-30,"Leon","Construction",0.349090820960021,0.334760617724562
-30,"Leon","Manufacturing",3.29128025303799,3.1561729626166
-30,"Leon","Wholesale Trade",0.876806460503839,0.840813492419977
-30,"Leon","Retail Trade",0.164350910707503,0.157604294036534
-30,"Leon","Transportation and Warehousing",0.869297208542689,0.833612495790358
-30,"Leon","Information",1.04476884090926,1.00188100506433
-30,"Leon","Finance and Insurance",1.89956992198551,1.82159244046033
-30,"Leon","Real Estate and Rental and Leasing",1.41217940711985,1.35420934118312
-30,"Leon","Professional, Scientific, and Technical Services",1.79358144348985,1.71995479660789
-30,"Leon","Management of Companies and Enterprises",0.663483909169725,0.636247847116556
-30,"Leon","Administrative and Support and Waste ...",1.33881989885857,1.28386124599695
-30,"Leon","Educational Services",-0.0345012494983318,-0.033084970732168
-30,"Leon","Health Care and Social Assistance",-0.0934090731051507,-0.0895746239553521
-30,"Leon","Arts, Entertainment, and Recreation",0.106266101662508,0.101903870568388
-30,"Leon","Accommodation and Food Services",0.323184374676106,0.309917632918483
-30,"Leon","Other Services (except Public Administration)",-0.0611138229040241,-0.0586050960910358
-30,"Leon","Unclassified",0.745915383071793,0.715295503103371
-45,"GDP","Agriculture, Forestry, Fishing and Hunting",0.465877480924425,0.446753176922071
-45,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.482899888383249,0.463076813333949
-45,"GDP","Utilities",0.323763091139344,0.310472593029403
-45,"GDP","Construction",1.32188613856999,1.26762261778262
-45,"GDP","Manufacturing",5.79415892477587,5.55630828538568
-45,"GDP","Wholesale Trade",1.49404199319385,1.43271146222801
-45,"GDP","Retail Trade",1.72816031313155,1.65721920834247
-45,"GDP","Transportation and Warehousing",1.24257378685425,1.1915660437927
-45,"GDP","Information",1.57159065091285,1.50707674198625
-45,"GDP","Finance and Insurance",2.05092190906567,1.96673141761665
-45,"GDP","Real Estate and Rental and Leasing",1.8458194954539,1.77004847279256
-45,"GDP","Professional, Scientific, and Technical Services",1.56709265143244,1.50276338570708
-45,"GDP","Management of Companies and Enterprises",0.502731610313235,0.482094441656477
-45,"GDP","Administrative and Support and Waste ...",0.935833662362493,0.897417623409197
-45,"GDP","Educational Services",0.167593615050051,0.16071388513327
-45,"GDP","Health Care and Social Assistance",1.59302706829429,1.52763319289686
-45,"GDP","Arts, Entertainment, and Recreation",0.248367620817373,0.238172112171135
-45,"GDP","Accommodation and Food Services",0.965789568440692,0.926143837394599
-45,"GDP","Other Services (except Public Administration)",-0.143935950309951,-0.13802736922736
-45,"GDP","Unclassified",1.37790336171445,1.32134032989973
-45,"Leon","Agriculture, Forestry, Fishing and Hunting",0.433358147543613,0.415568764508666
-45,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.90613672995166,0.868939752203544
-45,"Leon","Utilities",0.648569512660731,0.621945687653843
-45,"Leon","Construction",0.535708488393225,0.513717616526346
-45,"Leon","Manufacturing",5.1040790460521,4.89455623517261
-45,"Leon","Wholesale Trade",1.35430615603866,1.2987117912092
-45,"Leon","Retail Trade",0.245339538616743,0.235268332961999
-45,"Leon","Transportation and Warehousing",1.33360924323326,1.27886448815874
-45,"Leon","Information",1.59869861256149,1.53307191986516
-45,"Leon","Finance and Insurance",2.97591434622395,2.85375284889375
-45,"Leon","Real Estate and Rental and Leasing",2.17419205414766,2.08494131440271
-45,"Leon","Professional, Scientific, and Technical Services",2.72594762668042,2.61404728111384
-45,"Leon","Management of Companies and Enterprises",1.00664111292504,0.965318423048198
-45,"Leon","Administrative and Support and Waste ...",2.05935599834599,1.97481928692716
-45,"Leon","Educational Services",-0.0657984641334488,-0.0630974324620336
-45,"Leon","Health Care and Social Assistance",-0.155502176488631,-0.149118800991933
-45,"Leon","Arts, Entertainment, and Recreation",0.160149346874325,0.153575204700023
-45,"Leon","Accommodation and Food Services",0.501810089854905,0.481210749679048
-45,"Leon","Other Services (except Public Administration)",-0.127552180564767,-0.122316154405178
-45,"Leon","Unclassified",1.17661234238172,1.12831232134619
-60,"GDP","Agriculture, Forestry, Fishing and Hunting",0.615300098995972,0.590041985805937
-60,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.525968072256004,0.504377045170092
-60,"GDP","Utilities",0.340197066304174,0.326231952335154
-60,"GDP","Construction",1.71811723417383,1.64758839849621
-60,"GDP","Manufacturing",6.99319649993941,6.70612528209978
-60,"GDP","Wholesale Trade",2.08484621460418,1.99926312797992
-60,"GDP","Retail Trade",2.4083795088173,2.3095153572634
-60,"GDP","Transportation and Warehousing",1.61654506301095,1.55018577224382
-60,"GDP","Information",2.35472270253846,2.25806116673031
-60,"GDP","Finance and Insurance",3.14069342883533,3.01176773834679
-60,"GDP","Real Estate and Rental and Leasing",2.5971802284119,2.49056579377879
-60,"GDP","Professional, Scientific, and Technical Services",2.3203763360061,2.22512472100725
-60,"GDP","Management of Companies and Enterprises",0.724086510927789,0.694362707726335
-60,"GDP","Administrative and Support and Waste ...",1.32272577270262,1.26842778487389
-60,"GDP","Educational Services",0.214733688010309,0.205918854717859
-60,"GDP","Health Care and Social Assistance",2.21758203326913,2.12655013176952
-60,"GDP","Arts, Entertainment, and Recreation",0.34023162686976,0.326265094187044
-60,"GDP","Accommodation and Food Services",1.3351491846001,1.28034121482204
-60,"GDP","Other Services (except Public Administration)",-0.15931652442582,-0.152776569672755
-60,"GDP","Unclassified",1.82286904732117,1.74804014220157
-60,"Leon","Agriculture, Forestry, Fishing and Hunting",0.599378105862052,0.574773591632011
-60,"Leon","Mining, Quarrying, and Oil and Gas Extraction",1.09322975467808,1.04835259484757
-60,"Leon","Utilities",0.885740086740423,0.849380392658874
-60,"Leon","Construction",0.741830735369065,0.71137853048177
-60,"Leon","Manufacturing",6.87632802862322,6.59405426991234
-60,"Leon","Wholesale Trade",1.82077301419457,1.74603015138514
-60,"Leon","Retail Trade",0.330364015134014,0.316802548620706
-60,"Leon","Transportation and Warehousing",1.77902304881031,1.705994025074
-60,"Leon","Information",2.39206362512465,2.29386924176643
-60,"Leon","Finance and Insurance",4.34239714720603,4.16414143289819
-60,"Leon","Real Estate and Rental and Leasing",3.07189120560335,2.94578985131264
-60,"Leon","Professional, Scientific, and Technical Services",3.86030391540087,3.70183816283195
-60,"Leon","Management of Companies and Enterprises",1.34756639047539,1.29224869350565
-60,"Leon","Administrative and Support and Waste ...",2.90406576766981,2.78485365964187
-60,"Leon","Educational Services",-0.105605924981255,-0.101270794187245
-60,"Leon","Health Care and Social Assistance",-0.216222796504602,-0.207346835201669
-60,"Leon","Arts, Entertainment, and Recreation",0.242050648787433,0.232114452296045
-60,"Leon","Accommodation and Food Services",0.708353757893406,0.679275785332289
-60,"Leon","Other Services (except Public Administration)",-0.146160716657865,-0.140160808757143
-60,"Leon","Unclassified",1.66108143183751,1.59289391993612
+15,"GDP","Agriculture, Forestry, Fishing and Hunting",0.0231957233283889,0.0248535468257432
+15,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.0593958345391254,0.0636409192364162
+15,"GDP","Utilities",0.07198288355151,0.0771275782898269
+15,"GDP","Construction",0.176270656714869,0.188868911680186
+15,"GDP","Manufacturing",0.465846461860593,0.499141013606116
+15,"GDP","Wholesale Trade",0.247490868036725,0.265179308729142
+15,"GDP","Retail Trade",0.300573030421663,0.322055310816609
+15,"GDP","Transportation and Warehousing",0.177834172862943,0.19054417402268
+15,"GDP","Information",0.265090905803617,0.284037240278918
+15,"GDP","Finance and Insurance",0.270171744550555,0.289481212080243
+15,"GDP","Real Estate and Rental and Leasing",0.273598673520988,0.293153067380004
+15,"GDP","Professional, Scientific, and Technical Services",0.244809264834732,0.262306048438646
+15,"GDP","Management of Companies and Enterprises",0.0832748888426328,0.0892266354430041
+15,"GDP","Administrative and Support and Waste ...",0.147002870339772,0.157509324877861
+15,"GDP","Educational Services",0.103833453705983,0.111254543228747
+15,"GDP","Health Care and Social Assistance",0.374603652288657,0.401376981499686
+15,"GDP","Arts, Entertainment, and Recreation",0.0578200749968826,0.0619525384510965
+15,"GDP","Accommodation and Food Services",0.124309878748878,0.133194440572003
+15,"GDP","Other Services (except Public Administration)",0.0572331877051549,0.0613237056882683
+15,"GDP","Unclassified",0.11674334997192,0.125087123778983
+15,"Leon","Agriculture, Forestry, Fishing and Hunting",0.285754036205607,0.306177187015727
+15,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.24963970183286,0.267481722006663
+15,"Leon","Utilities",0.077737310862041,0.0832932807597551
+15,"Leon","Construction",0.0632870712406606,0.0678102668442699
+15,"Leon","Manufacturing",1.49108090755086,1.59765007678943
+15,"Leon","Wholesale Trade",0.38229179285525,0.409614601808808
+15,"Leon","Retail Trade",0.0389637067649135,0.0417484851356678
+15,"Leon","Transportation and Warehousing",0.275248903572323,0.294921241162448
+15,"Leon","Information",0.23335929702759,0.25003773901715
+15,"Leon","Finance and Insurance",0.523367572774002,0.560773220686527
+15,"Leon","Real Estate and Rental and Leasing",0.383336345270254,0.410733809517518
+15,"Leon","Professional, Scientific, and Technical Services",0.445357890231395,0.477188101546865
+15,"Leon","Management of Companies and Enterprises",0.214724653944305,0.230071257787198
+15,"Leon","Administrative and Support and Waste ...",0.292551571155845,0.313460549159412
+15,"Leon","Educational Services",-0.0337073219849172,-0.0361164208359582
+15,"Leon","Health Care and Social Assistance",-0.0906073014628372,-0.0970831035436941
+15,"Leon","Arts, Entertainment, and Recreation",0.0101335132123319,0.0108577663893645
+15,"Leon","Accommodation and Food Services",0.0833651127815832,0.0893233077847009
+15,"Leon","Other Services (except Public Administration)",0.0738516159850259,0.0791298710566289
+15,"Leon","Unclassified",0.314574638883486,0.337057629417113
+30,"GDP","Agriculture, Forestry, Fishing and Hunting",0.0759233500172574,0.0813496741665208
+30,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.175540071084453,0.188086110302592
+30,"GDP","Utilities",0.178053103622678,0.1907787520012
+30,"GDP","Construction",0.414409816357347,0.444028135276106
+30,"GDP","Manufacturing",1.32508772782193,1.41979318451922
+30,"GDP","Wholesale Trade",0.585182556844746,0.627006188694666
+30,"GDP","Retail Trade",0.70083747682377,0.750927091208979
+30,"GDP","Transportation and Warehousing",0.436945665512816,0.468174646006291
+30,"GDP","Information",0.645989672497648,0.69215925483631
+30,"GDP","Finance and Insurance",0.671695175555076,0.719701958069675
+30,"GDP","Real Estate and Rental and Leasing",0.65004357784051,0.696502897189667
+30,"GDP","Professional, Scientific, and Technical Services",0.603002863866699,0.646100132381999
+30,"GDP","Management of Companies and Enterprises",0.20085801271931,0.215213552678283
+30,"GDP","Administrative and Support and Waste ...",0.356273569276732,0.381736827579628
+30,"GDP","Educational Services",0.187335610158258,0.20072468934388
+30,"GDP","Health Care and Social Assistance",0.784212515078075,0.8402610338507
+30,"GDP","Arts, Entertainment, and Recreation",0.125620680779663,0.134598927045228
+30,"GDP","Accommodation and Food Services",0.31091732803444,0.333138926596072
+30,"GDP","Other Services (except Public Administration)",0.137826769266956,0.147677397911743
+30,"GDP","Unclassified",0.348155281694309,0.373038317181047
+30,"Leon","Agriculture, Forestry, Fishing and Hunting",0.505894904622509,0.542051761996669
+30,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.441958597770626,0.473545857968078
+30,"Leon","Utilities",0.137625035804799,0.147461246340308
+30,"Leon","Construction",0.112042535931479,0.12005033746199
+30,"Leon","Manufacturing",2.63978855216284,2.82845710230313
+30,"Leon","Wholesale Trade",0.67680398377757,0.7251758983553
+30,"Leon","Retail Trade",0.0689807954397271,0.073910927685537
+30,"Leon","Transportation and Warehousing",0.487296766370008,0.52212439463734
+30,"Leon","Information",0.413135999337573,0.442663277172731
+30,"Leon","Finance and Insurance",0.926562549480526,0.992784979561739
+30,"Leon","Real Estate and Rental and Leasing",0.678653244601243,0.727157327855192
+30,"Leon","Professional, Scientific, and Technical Services",0.78845531070428,0.844807066680764
+30,"Leon","Management of Companies and Enterprises",0.380145490750286,0.407314901165171
+30,"Leon","Administrative and Support and Waste ...",0.517929164369045,0.554946123336013
+30,"Leon","Educational Services",-0.0596749661599542,-0.0639400006968475
+30,"Leon","Health Care and Social Assistance",-0.16040988515964,-0.171874553584103
+30,"Leon","Arts, Entertainment, and Recreation",0.0179402284850141,0.0192224360673904
+30,"Leon","Accommodation and Food Services",0.147588416735918,0.158136720909847
+30,"Leon","Other Services (except Public Administration)",0.130745856545245,0.140090404679993
+30,"Leon","Unclassified",0.556918492028281,0.596722060519101
+45,"GDP","Agriculture, Forestry, Fishing and Hunting",0.11237910138031,0.120410957608386
+45,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.250551857748177,0.268459070694296
+45,"GDP","Utilities",0.265806922556794,0.284804431525819
+45,"GDP","Construction",0.641016387318839,0.686830523573248
+45,"GDP","Manufacturing",1.96826317069598,2.10893707368927
+45,"GDP","Wholesale Trade",0.909297880800673,0.974286386291292
+45,"GDP","Retail Trade",1.08296579914178,1.160366539064
+45,"GDP","Transportation and Warehousing",0.66200136133282,0.709315316433972
+45,"GDP","Information",0.972338220997041,1.041832287956
+45,"GDP","Finance and Insurance",1.07892090607826,1.15603255310736
+45,"GDP","Real Estate and Rental and Leasing",1.00285392995835,1.0745289877249
+45,"GDP","Professional, Scientific, and Technical Services",0.886490525160181,0.949848964213207
+45,"GDP","Management of Companies and Enterprises",0.311767458048114,0.334049816323617
+45,"GDP","Administrative and Support and Waste ...",0.54844359984607,0.58764145860332
+45,"GDP","Educational Services",0.290734266918093,0.311513360217288
+45,"GDP","Health Care and Social Assistance",1.2408991011566,1.32958750542057
+45,"GDP","Arts, Entertainment, and Recreation",0.196841168115676,0.210909619835372
+45,"GDP","Accommodation and Food Services",0.477538943617733,0.511669169712573
+45,"GDP","Other Services (except Public Administration)",0.213874382598596,0.229160216626465
+45,"GDP","Unclassified",0.516991282080079,0.553941209582911
+45,"Leon","Agriculture, Forestry, Fishing and Hunting",0.800448057700442,0.857656948308451
+45,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.699285361321206,0.749264044328491
+45,"Leon","Utilities",0.217756082526876,0.233319345857538
+45,"Leon","Construction",0.177278382222698,0.189948660422734
+45,"Leon","Manufacturing",4.17678375490914,4.47530301875041
+45,"Leon","Wholesale Trade",1.07086754444171,1.1474036089824
+45,"Leon","Retail Trade",0.109144297014737,0.116944958267314
+45,"Leon","Transportation and Warehousing",0.771021306205154,0.826127034976431
+45,"Leon","Information",0.653681041683252,0.700400334517344
+45,"Leon","Finance and Insurance",1.46604598364768,1.57082587972959
+45,"Leon","Real Estate and Rental and Leasing",1.07379352219117,1.15053870953425
+45,"Leon","Professional, Scientific, and Technical Services",1.24752693942978,1.33668904248168
+45,"Leon","Management of Companies and Enterprises",0.60148208043665,0.644470656911223
+45,"Leon","Administrative and Support and Waste ...",0.819489166341702,0.878058945630537
+45,"Leon","Educational Services",-0.0944202250697063,-0.101168540935091
+45,"Leon","Health Care and Social Assistance",-0.253807223276532,-0.271947100726748
+45,"Leon","Arts, Entertainment, and Recreation",0.0283857791693851,0.0304145415852622
+45,"Leon","Accommodation and Food Services",0.233520560171487,0.250210527812799
+45,"Leon","Other Services (except Public Administration)",0.206871557645187,0.221656892180487
+45,"Leon","Unclassified",0.881179709793942,0.944158579114236
+60,"GDP","Agriculture, Forestry, Fishing and Hunting",0.160033688651227,0.171471469903325
+60,"GDP","Mining, Quarrying, and Oil and Gas Extraction",0.293848429592251,0.314850095474448
+60,"GDP","Utilities",0.336046053501843,0.360063629319655
+60,"GDP","Construction",0.884399107517121,0.947608070683477
+60,"GDP","Manufacturing",2.45803579977971,2.63371428363306
+60,"GDP","Wholesale Trade",1.32422417145522,1.41886790884263
+60,"GDP","Retail Trade",1.57170078941754,1.6840319490291
+60,"GDP","Transportation and Warehousing",0.916251495017646,0.981736982856142
+60,"GDP","Information",1.58030219071038,1.69324810179882
+60,"GDP","Finance and Insurance",1.79233949822581,1.92043994559399
+60,"GDP","Real Estate and Rental and Leasing",1.50064633694406,1.60789915779315
+60,"GDP","Professional, Scientific, and Technical Services",1.43646078545201,1.5391261953397
+60,"GDP","Management of Companies and Enterprises",0.473054800931901,0.506864540486838
+60,"GDP","Administrative and Support and Waste ...",0.826442579041734,0.885509326275812
+60,"GDP","Educational Services",0.41081993610847,0.440181682393342
+60,"GDP","Health Care and Social Assistance",1.82964838534795,1.9604153393327
+60,"GDP","Arts, Entertainment, and Recreation",0.283594990111218,0.303863831555923
+60,"GDP","Accommodation and Food Services",0.69951659469563,0.749511804202911
+60,"GDP","Other Services (except Public Administration)",0.32309658867718,0.346188652202895
+60,"GDP","Unclassified",0.754300834426332,0.808211532949603
+60,"Leon","Agriculture, Forestry, Fishing and Hunting",1.07691413720748,1.15388235828945
+60,"Leon","Mining, Quarrying, and Oil and Gas Extraction",0.940810942452029,1.00805172062842
+60,"Leon","Utilities",0.292966672203324,0.313905317928847
+60,"Leon","Construction",0.238508413132214,0.255554868032948
+60,"Leon","Manufacturing",5.61939957308702,6.02102415367879
+60,"Leon","Wholesale Trade",1.44073358238757,1.54370437370523
+60,"Leon","Retail Trade",0.146841553702327,0.157336478765422
+60,"Leon","Transportation and Warehousing",1.03732370483339,1.11146235478576
+60,"Leon","Information",0.879455385319524,0.942311015299951
+60,"Leon","Finance and Insurance",1.97240236939558,2.11337210540805
+60,"Leon","Real Estate and Rental and Leasing",1.44467016112399,1.54792230399237
+60,"Leon","Professional, Scientific, and Technical Services",1.67840921680629,1.79836694342705
+60,"Leon","Management of Companies and Enterprises",0.809227468875447,0.867063833519632
+60,"Leon","Administrative and Support and Waste ...",1.10253183830202,1.18133098425844
+60,"Leon","Educational Services",-0.127031946967298,-0.136111057957526
+60,"Leon","Health Care and Social Assistance",-0.341469486048978,-0.36587468047155
+60,"Leon","Arts, Entertainment, and Recreation",0.0381899194945647,0.0409193944500912
+60,"Leon","Accommodation and Food Services",0.314176029484974,0.336630530972679
+60,"Leon","Other Services (except Public Administration)",0.278322750453357,0.298214779213036
+60,"Leon","Unclassified",1.18552962652402,1.27026071439899
