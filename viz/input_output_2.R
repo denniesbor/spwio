@@ -12,12 +12,12 @@ folder = dirname(rstudioapi::getSourceEditorContext()$path)
 data_directory = file.path(folder, '..', 'data', 'results', "supply")
 setwd(data_directory)
 
-
 # set the working directory
 # input - output modeling
 TechnicalCoefficients <- read.csv("IndByComs.csv")
 grossOutput2022 <- read.csv("output_2022.csv")[, 2]
 grossOutput2022 <- grossOutput2022 / 1000
+consumption <- read.csv("consumption.csv")[, 3] #/ (365 * 1.2) # Get daily consumption in 2017 dollars
 
 # grossOutput <- read.csv("Gross.csv")[, 10]
 Industries <- read.csv("Gross.csv")[, 1]
@@ -44,8 +44,9 @@ pop_scenario <- read.csv("pop_est.csv")
 
 # Read the entire grid data -  calculate total population and daily gross output
 grid_data <- read.csv("grid_data.csv")
-total_pop <- sum(grid_data$POP20) # total population
-daily_gdp <- 38062467 / (1000 * 365)
+total_pop <- sum(grid_data$POP20) / 1e6 # total population
+
+daily_gdp <- sum(grid_data$DailyGDP)
 
 # NAICs Industries
 NAICSIndustries <- c(
@@ -114,6 +115,13 @@ condensed_aggregated_frame <- data.frame()
 percentile <- 15
 
 for (i in seq(from = 1, to = 4, by = 1)) {
+  # Estimate change in personal consumption due to population disruption
+  perc_column <- paste0("perc", i * percentile) # Column name
+  scenario_pop <- sum(pop_scenario[perc_column])
+  pop_percentage <- scenario_pop / total_pop
+  consumption_loss <- (consumption * pop_percentage) / 1000 # In billion dollars
+  
+  # Estimate direct supply impacts
   VA <- vector(mode = 'numeric', length = 69)
 
   #NAICS 11 - Farms are 88.7% of Sector Mark
@@ -225,10 +233,12 @@ for (i in seq(from = 1, to = 4, by = 1)) {
   VA[68] = GDPShocks[, i + 2][20] * .7197
   VA[69] = GDPShocks[, i + 2][20] * .1017
   
-  VAm <- matrix(VA, nrow = 1)
-  Lem <- matrix(VA, ncol = 1)
-  Output <- (VAm %*% Ghosh)
-  LeonOutput <- (L %*% Lem)
+  VAm <- VA - consumption_loss # Subtract personal consumption from VA
+  
+  VAm <- matrix(VAm, nrow = 1)
+  Lem <- matrix(consumption_loss, ncol = 1)
+  Output <- (VAm %*% Ghosh) - as.vector(VAm)
+  LeonOutput <- (L %*% Lem) - as.vector(consumption_loss)
   
   # Create new vectors for condensed output
   CondensedOutput <- numeric(length = 20)
@@ -335,7 +345,6 @@ for (i in seq(from = 1, to = 4, by = 1)) {
   
   ## Mutate gdp shocks to conform with upstream and downstream dataframes ##
   
-  perc_column <- paste0("perc", i * percentile)
   direct_impact_df <- GDPShocks %>%
     mutate(
       Output = .[[perc_column]],
@@ -350,7 +359,7 @@ for (i in seq(from = 1, to = 4, by = 1)) {
       "Decile" = i * percentile,
       "Type" = "GDP",
       "NAICSIndustries" = NAICSIndustries,
-      "Output" = as.vector(CondensedOutput) - direct_impact_df$Output
+      "Output" = as.vector(CondensedOutput)
     )
   
   CondensedLeonFrame <-
@@ -358,7 +367,7 @@ for (i in seq(from = 1, to = 4, by = 1)) {
       "Decile" = i * percentile,
       "Type" = "Leon",
       "NAICSIndustries" = NAICSIndustries,
-      "Output" = as.vector(CondensedLeonOutput) - direct_impact_df$Output
+      "Output" = as.vector(CondensedLeonOutput)
     )
   
   # Combine Frame and LeonFrame for the current iteration
@@ -389,26 +398,30 @@ for (i in seq(from = 1, to = 4, by = 1)) {
       "Downstream effects" = Leon,
       "Upstream effects" = GDP
     ) %>%
+    mutate(TotalImpact = `Direct Impact` + `Downstream effects` + `Upstream effects`) %>%
     mutate(Scenario = paste0("S", i)) %>%
     mutate(Impact = paste0(i * percentile, "%")) %>%
-    mutate(Population = sum(pop_scenario[perc_column])) %>%
-    select(Scenario,Impact, Population, everything()) %>%
-    mutate(across(c("Direct Impact", "Downstream effects", "Upstream effects"), round, digits = 2))
-
+    mutate(Population = scenario_pop) %>%
+    select(Scenario, Impact, Population, everything()) %>%
+    mutate(across(c("Direct Impact", "Downstream effects", "Upstream effects", "TotalImpact"), round, digits = 2))
+  
   sum_scenario_data <- sum_scenario_data %>%
     mutate(
-      `Population` = paste(sprintf("%.2f", `Population`), "(", sprintf("%.2f%%", (`Population` / (total_pop/1e6)) * 100), ")", sep = ""),
+      `Population` = paste(sprintf("%.2f", `Population`), "(", sprintf("%.2f%%", (`Population` / total_pop) * 100), ")", sep = ""),
       `Direct Impact` = paste(sprintf("%.2f", `Direct Impact`), "(", sprintf("%.2f%%", (`Direct Impact` / daily_gdp) * 100), ")", sep = ""),
       `Downstream effects` = paste(sprintf("%.2f", `Downstream effects`), "(", sprintf("%.2f%%", (`Downstream effects` / daily_gdp) * 100), ")", sep = ""),
-      `Upstream effects` = paste(sprintf("%.2f", `Upstream effects`), "(", sprintf("%.2f%%", (`Upstream effects` / daily_gdp) * 100), ")", sep = "")
+      `Upstream effects` = paste(sprintf("%.2f", `Upstream effects`), "(", sprintf("%.2f%%", (`Upstream effects` / daily_gdp) * 100), ")", sep = ""),
+      `TotalImpact` = paste(sprintf("%.2f", `TotalImpact`), "(", sprintf("%.2f%%", (`TotalImpact` / daily_gdp) * 100), ")", sep = "")
     ) %>%
     rename(
       'Business Impact' = Impact,
       `Population (M)` = Population,
       `Direct impacts ($Bn)` = `Direct Impact`,
       `Demand-side impacts ($Bn)` = `Downstream effects`,
-      `Supply-side impacts ($Bn)` = `Upstream effects`
+      `Supply-side impacts ($Bn)` = `Upstream effects`,
+      `Total Impact ($Bn)` = `TotalImpact`
     )
+  
   
   # Append pivoted and concatenated impacts to a table for export
   table_frame <- rbind(table_frame, sum_scenario_data)
@@ -418,7 +431,7 @@ for (i in seq(from = 1, to = 4, by = 1)) {
     geom_bar(stat = "identity", width = 0.9, position = "stack") +
     scale_fill_manual(values = c("Direct" = "#E41A1C", "Leon" = "#4DAF4A", "GDP" = "#2D72B4"),
                       labels = c("Direct" = "Direct GDP Shock", "Leon" = " Indirect Demand Side Impact", "GDP" = "Indirect Supply Side Impact")) +
-    scale_x_continuous(expand = c(0, 0), limits = c(0, 19)) +
+    scale_x_continuous(expand = c(0, 0), limits = c(0, 12)) +
     ylab("") +
     xlab("Daily Losses (In Billions, US $)") +
     labs(
