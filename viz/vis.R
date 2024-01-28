@@ -152,6 +152,18 @@ create_sf_plot <-
            fill_variable,
            legend_title,
            plot_title) {
+    
+    # Get unique values
+    unique_values <- unique(data[[fill_variable]])
+    
+    # Create a Brewer color palette
+    num_colors <- length(unique_values) - 1
+    colors <- brewer_color_ramp(num_colors)
+    
+    # Create a color gradient, including grey for zero
+    gradient_colors <- c("grey", colors)
+    gradient_breaks <- c(0, sort(unique_values[unique_values != 0]))
+    
     plot <- ggplot(data) +
       geom_sf(data = data_2, fill = NA, color = "dodgerblue", linewidth=0.1, alpha=1) +
       geom_sf(aes(fill = .data[[fill_variable]]),
@@ -159,7 +171,8 @@ create_sf_plot <-
               alpha=0.8,
               color = "white") +
       theme_void() +
-      scale_fill_gradientn(colors = brewer_color_ramp(num_colors),
+      scale_fill_gradientn(colors = gradient_colors, 
+                           values = scales::rescale(gradient_breaks),
                            name = legend_title) +
       labs(title = plot_title) +
       theme(
@@ -477,5 +490,191 @@ ggsave(path_out,
        combined_plot,
        width = 10.5,
        height = 7.5)
+
+
+## Plot direct impact, business establishments, and population affected ##
+
+### 1) SUPPLY SIDE SCENARIOS ###
+
+# Load the number of establishments affected in each scenario
+df_est <- read.csv("est_regions.csv")
+
+# Merge with the grid regions df
+merged_nerc_est <- nerc_geojson %>%
+  inner_join(df_est, by = c("REGIONS"))
+
+# Load the population size affected in each scenario
+df_pop <-
+  read.csv("regions_pop_est_loss_scenarios.csv")
+
+# Merge with the grid regions df
+merged_nerc_pop <- nerc_geojson %>%
+  inner_join(df_pop, by = c("REGIONS"))
+
+# Load the GDP shock
+df_gdp_shock <- read.csv("regions_gdp_loss_est_scenarios.csv")
+
+# Merge with the grid regions df
+merged_nerc_gdp <- nerc_geojson %>%
+  inner_join(df_gdp_shock, by = c("REGIONS"))
+
+create_plot <-
+  function(data,
+           data_2,
+           fill_variable,
+           legend_title,
+           plot_title) {
+    
+    # Get unique values
+    unique_values <- unique(data[[fill_variable]])
+    
+    # Create a Brewer color palette
+    num_colors <- length(unique_values) - 1
+    colors <- brewer_color_ramp(num_colors)
+    
+    # Create a color gradient, including grey for zero
+    gradient_colors <- c("grey", colors)
+    gradient_breaks <- c(0, sort(unique_values[unique_values != 0]))
+    
+    plot <- ggplot(data) +
+      geom_sf(data = data_2, fill = NA, color = "dodgerblue", linewidth=0.1, alpha=1) +
+      geom_sf(aes(fill = .data[[fill_variable]]),
+              linewidth = 0.34,
+              alpha=0.8,
+              color = "white") +
+      theme_void() +
+      scale_fill_gradientn(colors = gradient_colors, 
+                           values = scales::rescale(gradient_breaks),
+                           name = legend_title) +
+      labs(title = plot_title) +
+      theme(
+        text = element_text(color = "#22211d"),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
+        plot.background = element_rect(fill = "#f5f5f2", color = NA),
+        panel.background = element_rect(fill = "#f5f5f2", color = NA),
+        legend.background = element_rect(fill = "#f5f5f2", color = NA),
+        plot.title = element_text(
+          size = 9,
+          hjust = 0.03,
+          margin = margin(
+            b = -0.1,
+            t = 0.4,
+            l = 2,
+            unit = "cm"
+          )
+        ),
+        legend.position = c(0.3, 0),
+        legend.justification = c(0.5, 0.5),
+        legend.text = element_text(size = 8),
+        legend.key.height = unit(3, "mm"),
+        legend.key.width = unit(0.03, "npc"),
+        legend.title = element_text(size = 8)  # Adjusting legend title size
+      ) +
+      guides(fill = guide_colourbar(title.position = 'top', direction = "horizontal")) +
+      coord_sf() +
+      theme(text = element_text(family = "Times New Roman"))
+    
+    
+    return(plot)
+  }
+
+# Function to create a plot for a given percentage column
+create_perc_plot <- function(data, shape, perc_col, legend_title_base, plot_title_base, include_percentage = TRUE) {
+  percentage <- gsub("perc", "", perc_col)  # Extract the percentage value
+  legend_title <- sprintf("%s", legend_title_base)
+  
+  if (include_percentage) {
+    plot_title <- sprintf("%s (%s%%)", plot_title_base, percentage)
+  } else {
+    plot_title <- plot_title_base
+  }
+  
+  plot <- create_plot(
+    data = data,
+    shape,
+    fill_variable = perc_col,
+    legend_title = legend_title,
+    plot_title = plot_title
+  )
+  
+  return(plot)
+}
+
+# List of all columns starting with 'perc'
+perc_columns <- grep("^perc[1-9]", names(merged_nerc_pop), value = TRUE)
+
+plot12 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[1], "Establishments (Millions)", "(A) Establishments without Power")
+plot13 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[2], "Establishments (Millions)", "(D) Establishments without Power")
+plot14 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[3], "Establishments (Millions)", "(G) Establishments without Power")
+plot15 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[4], "Establishments (Millions)", "(J) Establishments without Power")
+plot16 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[1], "Population (Millions)", "(B) Population without Power", FALSE)
+plot17 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[2], "Population (Millions)", "(E) Population without Power", FALSE)
+plot18 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[3], "Population (Millions)", "(H) Population without Power", FALSE)
+plot19 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[4], "Population (Millions)", "(K) Population without Power", FALSE)
+plot20 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[1], "GDP Shock ($Bn)", "(C) Daily GDP Loss", FALSE)
+plot21 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[2], "GDP Shock ($Bn)", "(F) Daily GDP Loss", FALSE)
+plot22 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[3], "GDP Shock ($Bn)", "(I) Daily GDP Loss", FALSE)
+plot23 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[4], "GDP Shock ($Bn)", "(L) Daily GDP Loss", FALSE)
+
+combined_plot <- plot12 + plot16 + plot20 + plot13 + plot17 + plot21 + plot14 + plot18 + plot22 + plot15 + plot19 + plot23
+
+# Adjust the layout
+combined_plot <- combined_plot + plot_layout(ncol = 3, nrow = 4) &
+  theme(plot.margin = unit(c(0.5, 0, 0.5, 0), "cm"))
+
+# Print the combined plot
+print(combined_plot)
+
+path_out <- file.path(folder, 'figures', 'combined_plot_est.png')
+ggsave(path_out, combined_plot, width = 8, height = 12)
+
+### 1) DEMAND SIDE SCENARIOS ###
+
+# Load the population size affected in each scenario
+df_pop <-
+  read.csv("pop_regions.csv")
+
+# Merge with the grid regions df
+merged_nerc_pop <- nerc_geojson %>%
+  inner_join(df_pop, by = c("REGIONS"))
+
+# Load the number of establishments affected in each scenario
+df_est <- read.csv("regions_est_pop_scenarios.csv")
+
+# Merge with the grid regions df
+merged_nerc_est <- nerc_geojson %>%
+  inner_join(df_est, by = c("REGIONS"))
+
+# Load the GDP shock
+df_gdp_shock <- read.csv("regions_gdp_loss_pop_scenarios.csv")
+
+# Merge with the grid regions df
+merged_nerc_gdp <- nerc_geojson %>%
+  inner_join(df_gdp_shock, by = c("REGIONS"))
+
+# Make the plots
+plot24 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[1], "Establishments (Millions)", "(B) Establishments without Power", FALSE)
+plot25 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[2], "Establishments (Millions)", "(E) Establishments without Power", FALSE)
+plot26 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[3], "Establishments (Millions)", "(H) Establishments without Power", FALSE)
+plot27 <- create_perc_plot(merged_nerc_est, state_shp_filtered, perc_columns[4], "Establishments (Millions)", "(K) Establishments without Power", FALSE)
+plot28 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[1], "Population (Millions)", "(A) Population without Power", TRUE)
+plot29 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[2], "Population (Millions)", "(D) Population without Power", TRUE)
+plot30 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[3], "Population (Millions)", "(G) Population without Power", TRUE)
+plot31 <- create_perc_plot(merged_nerc_pop, state_shp_filtered, perc_columns[4], "Population (Millions)", "(J) Population without Power", TRUE)
+plot32 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[1], "GDP Shock ($Bn)", "(C) Daily GDP Loss", FALSE)
+plot33 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[2], "GDP Shock ($Bn)", "(F) Daily GDP Loss", FALSE)
+plot34 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[3], "GDP Shock ($Bn)", "(I) Daily GDP Loss", FALSE)
+plot35 <- create_perc_plot(merged_nerc_gdp, state_shp_filtered, perc_columns[4], "GDP Shock ($Bn)", "(L) Daily GDP Loss", FALSE)
+
+combined_plot <- plot28 + plot24 + plot32 + plot29 + plot25 + plot33 + plot30 + plot26 + plot34 + plot31 + plot27 + plot35
+# Adjust the layout
+combined_plot <- combined_plot + plot_layout(ncol = 3, nrow = 4) &
+  theme(plot.margin = unit(c(0.5, 0, 0.5, 0), "cm"))
+
+# Print the combined plot
+print(combined_plot)
+
+path_out <- file.path(folder, 'figures', 'combined_plot_pop.png')
+ggsave(path_out, combined_plot, width = 8, height = 12)
 
 dev.off()

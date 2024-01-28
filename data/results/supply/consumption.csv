@@ -1,0 +1,70 @@
+NAICS,Name,Consumption
+111CA,Farms,233600
+113FF,"Forestry, fishing, and related activities",12886
+211,Oil and gas extraction,0
+212,"Mining, except oil and gas",324
+213,Support activities for mining,0
+22,Utilities,358884
+23,Construction,0
+321,Wood products,10808
+327,Nonmetallic mineral products,28743
+331,Primary metals,1993
+332,Fabricated metal products,68505
+333,Machinery,52492
+334,Computer and electronic products,219344
+335,"Electrical equipment, appliances, and components",127086
+3361MV,"Motor vehicles, bodies and trailers, and parts",481331
+3364OT,Other transportation equipment,60091
+337,Furniture and related products,162998
+339,Miscellaneous manufacturing,386642
+311FT,Food and beverage and tobacco products,1445555
+313TT,Textile mills and textile product mills,101826
+315AL,Apparel and leather and allied products,524717
+322,Paper products,70152
+323,Printing and related support activities,9298
+324,Petroleum and coal products,509437
+325,Chemical products,733412
+326,Plastics and rubber products,102733
+42,Wholesale trade,0
+441,Motor vehicle and parts dealers,0
+445,Food and beverage stores,0
+452,General merchandise stores,0
+4A0,Other retail,13257
+481,Air transportation,219527
+482,Rail transportation,1214
+483,Water transportation,10942
+484,Truck transportation,15774
+485,Transit and ground passenger transportation,47714
+486,Pipeline transportation,0
+487OS,Other transportation and support activities,24613
+493,Warehousing and storage,314
+511,"Publishing industries, except internet (includes software)",244582
+512,Motion picture and sound recording industries,26215
+513,Broadcasting and telecommunications,388726
+514,"Data processing, internet publishing, and other information services",138105
+521CI,"Federal Reserve banks, credit intermediation, and related activities",358215
+523,"Securities, commodity contracts, and investments",288208
+524,Insurance carriers and related activities,445444
+525,"Funds, trusts, and other financial vehicles",160462
+ORE,Other real estate,6468
+532RL,Rental and leasing services and lessors of intangible assets,104470
+5411,Legal services,123013
+5415,Computer systems design and related services,0
+5412OP,"Miscellaneous professional, scientific, and technical services",107540
+55,Management of companies and enterprises,0
+561,Administrative and support services,81074
+562,Waste management and remediation services,37074
+61,Educational services,425875
+621,Ambulatory health care services,1306603
+622,Hospitals,1323066
+623,Nursing and residential care facilities,284090
+624,Social assistance,302549
+711AS,"Performing arts, spectator sports, museums, and related activities",97132
+713,"Amusements, gambling, and recreation industries",244516
+721,Accommodation,189009
+722,Food services and drinking places,1024940
+81,"Other services, except government",764303
+GFGN,Nondefense,0
+GFE,Government enterprises,6676
+GSLG,General government,0
+GSLE,Government enterprises,87288
