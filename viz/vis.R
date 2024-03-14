@@ -363,135 +363,6 @@ ggsave(path_out,
        width = 10.5,
        height = 7.5)
 
-#### Visualize US Transmission Lines and Magnetotelluric E fields at MT Stations ####
-
-# Greg's MT
-mt_data <- st_read("mt_gdf.geojson")
-
-# Transmission lines
-tl_data <- st_read("tl_cont.geojson")
-
-# remove not available voltage class
-tl_data_clean <- tl_data %>%
-  filter(VOLT_CLASS != "NOT AVAILABLE") %>%
-  filter(!is.na(VOLT_CLASS))
-
-## US Electricity Lines
-# color ramp
-colors <-
-  colorRampPalette(brewer.pal(9, "Set1"))(length(unique(tl_data_clean$VOLT_CLASS)))
-
-plot10 <- ggplot(tl_data_clean) +
-  geom_sf(data = state_shp_filtered, fill = NA, color = "black", linewidth=0.1) +
-  geom_sf(aes(color = VOLT_CLASS),
-          linewidth = 0.5,
-          alpha=1) +
-  theme_void() +
-  scale_color_manual(
-    values = colors,
-    name = "Line Voltage (kV)",
-    guide = guide_legend(
-      title.position = "top",
-      title.hjust = 0,
-      label.hjust = .0,
-      keywidth = 1.2,
-      keyheight = 0.7,
-      direction = "vertical"
-    )
-  ) +
-  labs(title = "(A) US Mainland Electricity Transmission Lines") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(
-      fill = "#f5f5f2",
-      color = "black",
-      linetype = "solid"
-    ),
-    legend.position = c(1,-0.1),
-    legend.justification = c(1, 0),
-    legend.text = element_text(size = 6),
-    legend.title = element_text(size = 8),
-    legend.key.height = unit(1, "cm"),
-    legend.key.width = unit(3, "cm"),
-    legend.margin = margin(3, 3, 3, 3),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    )
-  ) +
-  coord_sf() +
-  theme(text = element_text(family = "Times New Roman"))
-
-print(plot10)
-
-## MT DATA Viz ##
-
-# color ramp
-brewer_pal <- colorRampPalette(RColorBrewer::brewer.pal(9, "Spectral"))
-
-plot11 <- ggplot(mt_data) +
-  geom_sf(data = state_shp_filtered, fill = NA, color = "black", linewidth=0.1) +
-  geom_sf(aes(color = E.100.year),
-          linewidth = 0.5,
-          size=1.5) +
-  theme_void() +
-  scale_color_gradientn(
-    colours = brewer_pal(100),  # Use 100 to get a smooth gradient
-    name = "E (100-year)",
-    trans = "sqrt") +
-  labs(title = "(B) Ground Induced Currents Estimates During a 100-Year Event") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f5f5f2", color = NA),
-    panel.background = element_rect(fill = "#f5f5f2", color = NA),
-    legend.background = element_rect(fill = "#f5f5f2", color = NA),
-    plot.title = element_text(
-      size = 10,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    ),
-    legend.position = c(0.3, 0.1),
-    legend.justification = c(0.5, 0.5),
-    legend.text = element_text(size = 9),
-    legend.key.height = unit(4, "mm"),
-    legend.key.width = unit(0.04, "npc"),
-    legend.title = element_text(size = 8)  # Adjusting legend title size
-  ) +
-  guides(color = guide_colourbar(title.position = 'top', direction = "horizontal")) +
-  coord_sf() +
-  theme(text = element_text(family = "Times New Roman"))
-
-print(plot11)
-
-# save the plots
-combined_plot <- plot10 + plot11
-# Adjust the layout
-combined_plot <- combined_plot + plot_layout(ncol = 2, nrow = 1) &
-  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
-
-print(combined_plot)
-path_out = file.path(folder, 'figures', 'MT_TL.png')
-ggsave(path_out,
-       combined_plot,
-       width = 10.5,
-       height = 7.5)
-
-
 ## Plot direct impact, business establishments, and population affected ##
 
 ### 1) SUPPLY SIDE SCENARIOS ###
@@ -676,5 +547,57 @@ print(combined_plot)
 
 path_out <- file.path(folder, 'figures', 'combined_plot_pop.png')
 ggsave(path_out, combined_plot, width = 8, height = 12)
+
+### Scenarios Boxplot ###
+scenarios_df = read.csv("scenarios_df.csv")
+
+# Filter dataframe with 2, 4, 6, and 8 events
+filtered_df <- scenarios_df[scenarios_df$Event %in% c(2, 4, 6, 8), ]
+
+# Calculate means and standard deviations for GDPSum by Event
+summary_df <- filtered_df %>%
+group_by(Event) %>%
+summarise(
+  mean = mean(GDPSum),
+  sd = sd(GDPSum),
+  low = mean - 1.96 * sd,
+  high = mean + 1.96 * sd
+)
+
+# Plotting
+plot37 <- ggplot(summary_df, aes(x=factor(Event), y=mean, fill=factor(Event))) + 
+  geom_bar(stat="identity", position=position_dodge()) + 
+  geom_errorbar(aes(ymin=low, ymax=high), width=.2, position=position_dodge(.9), color="red") +
+  scale_fill_viridis_d(direction=1, option="D") +
+  labs(title = "GDP Sum by Event with Error Bars",
+       x = "Event", y = "GDP Sum") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+
+plot37
+
+# Box plot
+plot38 <- ggplot(filtered_df, aes(x=factor(Event), y=GDPSum, fill=factor(Event))) +
+  geom_boxplot(outlier.shape = NA) +  # Create boxplot
+  stat_boxplot(geom = "errorbar", width = 0.25) +  # Add horizontal lines at the whiskers
+  scale_fill_brewer(palette="Pastel1") +  # Choose a palette
+  labs(title="Simulation of scenarios from different events",
+       subtitle="The range of daily incurred costs in events investigated",
+       y="Daily GDP (US $Bn)", x="Simulation Event") +
+  theme_minimal() +  # Use minimal theme
+  theme(legend.position = "none",
+    text = element_text(family = "Times New Roman"),  # Apply Times New Roman font
+        plot.title = element_text(size=12),
+        plot.subtitle = element_text(size=11),
+        axis.title.x = element_text(size=11),
+        axis.title.y = element_text(size=11),
+        axis.text.x = element_text(hjust=1),
+        panel.grid.major = element_line(color="gray", size=0.5),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill="white"),
+        plot.background = element_rect(fill="white"))
+
+plot38
 
 dev.off()

@@ -212,22 +212,30 @@ p {
 }
 
 /* Footer */
+:root {
+  --sidebar-width: 10vw; /* Default sidebar width */
+}
+
+/* Footer */
 footer {
   position: fixed;
   bottom: 0;
   height: auto;
-  width: calc(100% - 210px);
+  width: calc(100% - var(10vw)); /* Use variable for width calculation */
   background-color: #f3f3f3;
   color: #666;
   display: flex;
   justify-content: space-between;
-  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-y: auto;
+  margin-left: 20px;
 }
+
+/* Rest of your CSS */
 
 .footer-left,
 .footer-right {
   padding: 10px;
-  flex-basis: 50%;
+  flex-basis: calc(50%);
 }
 
 .footer-left h3 {
