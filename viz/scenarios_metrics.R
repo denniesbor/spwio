@@ -45,7 +45,6 @@ state_shp_filtered <-
 
 ## General functions and params ##
 
-
 # List of columns to be grouped
 cols_to_group <- c("X.1.96SD", "X.1SD", "Mean", "X1SD", "X1.96SD")
 
@@ -57,17 +56,53 @@ replace_zeros_with_NA <- function(df, cols) {
   return(df)
 }
 
+# Read the general grid regions data
+grid_csv <- read.csv("grid_data.csv")
+
+#  Create variable groups and labels in intervals 8
+create_group_labels <- function(fill_variable) {
+  num_groups <- 8
+  
+  max_value <-
+    max(grid_csv[[fill_variable]], na.rm = TRUE)
+  min_value <- min(grid_csv[[fill_variable]], na.rm = TRUE)
+  
+  max_value_adjusted <- ceiling(max_value)
+  min_value_adjusted <- floor(min_value)
+  
+  range_value <- max_value_adjusted - min_value_adjusted
+  interval_size <- range_value / num_groups
+  
+  first_group <- min_value_adjusted
+  last_group <- max_value_adjusted
+  
+  # Generate the remaining groups, ensuring they are ceiled at each step, excluding the adjusted max_value
+  remaining_groups <- seq(first_group + interval_size, max_value_adjusted - interval_size, by = interval_size)
+  remaining_groups <- ceiling(remaining_groups)
+  
+  # Combine the first group with the remaining groups
+  groups <- c(first_group, remaining_groups, last_group)
+  
+  # Create group labels
+  group_labels <- paste0(groups[-length(groups)], "-", groups[-1] + 1 - 1)
+  
+  return(list(groups = groups, labels = group_labels))
+}
+
 # GDP groups
-gdp_groups <- c(0, 3, 6, 9, 12, 15) # GDP groups
-group_gdp_labels <- c("0-3", "3-6", "6-9", "9-12", "12-15") # Labels
+gdp_label_list <- create_group_labels("DailyGDP") # Groups and labels
+gdp_groups <- gdp_label_list$groups # Groups
+group_gdp_labels <-  gdp_label_list$labels # Labels
 
 # Pop groups
-pop_groups <- c(0, 10, 20, 30, 40, 50, 60, 70)
-group_pop_labels <- c("0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70")
+pop_label_list <- create_group_labels("DailyGDP") # Groups and labels
+pop_groups <- pop_label_list$groups # Groups
+group_pop_labels <-  pop_label_list$labels # Labels
 
 # Est groups
-est_groups <- c(seq(0, 1400, by=200), 1600)
-group_est_labels <- c("0-200", "200-400", "400-600", "600-800", "800-1000", "1000-1200", "1200-1400", "1400-1600")
+est_label_list <- create_group_labels("DailyGDP") # Groups and labels
+est_groups <- est_label_list$groups # Groups
+group_est_labels <-  est_label_list$labels # Labels
 
 # Function to apply cut and create grouped columns
 create_grouped_cols_v2 <- function(data, cols, breaks, labels) {
@@ -195,14 +230,13 @@ event_2_gdp_pivoted <- event_2_gdp_geo %>%
 event_2_gdp_plot = create_sf_faceted_plot(
   data = event_2_gdp_pivoted,
   state_shp_filtered,
-  legend_title = "GDP (US $Bn)",
-  plot_title = "(C) Range of direct impact",
+  legend_title = "GDP\n(US $Bn)",
+  plot_title = "(C) Direct economic impact",
   plot_subtitle = "Distribution of GDP shock in events leading to blackout in two grid regions",
   group_labels = group_gdp_labels
 )
 
 event_2_gdp_plot
-
 
 ### Population Event 2 ###
 
@@ -224,9 +258,9 @@ event_2_pop_pivoted <- event_2_pop_geo %>%
 event_2_pop_plot = create_sf_faceted_plot(
   data = event_2_pop_pivoted,
   state_shp_filtered,
-  legend_title = "Population (Mn)",
+  legend_title = "Population\n(Mn)",
   plot_title = "(A) Population affected in two grid failure scenarios",
-  plot_subtitle = "The subplots indicate heterogeneous distribution of population across grid regions under investigated percentiles",
+  plot_subtitle = "Heterogeneous distribution of population affected in the selected percentiles across grid regions",
   group_labels = group_pop_labels
 )
 
@@ -251,9 +285,9 @@ event_2_est_pivoted <- event_2_est_geo %>%
 event_2_est_plot = create_sf_faceted_plot(
   data = event_2_est_pivoted,
   state_shp_filtered,
-  legend_title = "Est (1,000)",
-  plot_title = "(B) Business establishments affected",
-  plot_subtitle = "Count of businesses impacted under various scenario percentiles",
+  legend_title = "Count\n(1,000)",
+  plot_title = "(B) Business establishments",
+  plot_subtitle = "Scenarios that may affect businesses within one standard deviation, two standard deviations, and the mean in the distribution",
   group_labels = group_est_labels
 )
 
@@ -306,8 +340,8 @@ event_4_gdp_pivoted <- event_4_gdp_geo %>%
 event_4_gdp_plot = create_sf_faceted_plot(
   data = event_4_gdp_pivoted,
   state_shp_filtered,
-  legend_title = "GDP (US $Bn)",
-  plot_title = "(C) Range of direct impact",
+  legend_title = "GDP\n(US $Bn)",
+  plot_title = "(C) Direct economic impact",
   plot_subtitle = "Distribution of GDP shock in events leading to blackout in four grid regions",
   group_labels = group_gdp_labels
 )
@@ -334,9 +368,9 @@ event_4_pop_pivoted <- event_4_pop_geo %>%
 event_4_pop_plot = create_sf_faceted_plot(
   data = event_4_pop_pivoted,
   state_shp_filtered,
-  legend_title = "Population (Mn)",
+  legend_title = "Population\n(Mn)",
   plot_title = "(A) Population affected in four grid failure scenarios",
-  plot_subtitle = "The subplots indicate heterogeneous distribution of population across grid regions under investigated percentiles",
+  plot_subtitle = "Heterogeneous distribution of population affected in the selected percentiles across grid regions",
   group_labels = group_pop_labels
 )
 
@@ -361,9 +395,9 @@ event_4_est_pivoted <- event_4_est_geo %>%
 event_4_est_plot = create_sf_faceted_plot(
   data = event_4_est_pivoted,
   state_shp_filtered,
-  legend_title = "Establishment (1,000)",
-  plot_title = "(B) Business establishments affected",
-  plot_subtitle = "Count of businesses impacted under various scenario percentiles",
+  legend_title = "Count\n(1,000)",
+  plot_title = "(B) Business establishments",
+  plot_subtitle = "Scenarios that may affect businesses within one standard deviation, two standard deviations, and the mean in the distribution",
   group_labels = group_est_labels
 )
 
@@ -415,8 +449,8 @@ event_6_gdp_pivoted <- event_6_gdp_geo %>%
 event_6_gdp_plot = create_sf_faceted_plot(
   data = event_6_gdp_pivoted,
   state_shp_filtered,
-  legend_title = "GDP (US $Bn)",
-  plot_title = "(C) Range of direct impact",
+  legend_title = "GDP\n(US $Bn)",
+  plot_title = "(C) Direct economic impact",
   plot_subtitle = "Distribution of GDP shock in events leading to blackout in six grid regions",
   group_labels = group_gdp_labels
 )
@@ -443,9 +477,9 @@ event_6_pop_pivoted <- event_6_pop_geo %>%
 event_6_pop_plot = create_sf_faceted_plot(
   data = event_6_pop_pivoted,
   state_shp_filtered,
-  legend_title = "Population (Mn)",
+  legend_title = "Population\n(Mn)",
   plot_title = "(A) Population affected in six grid failure scenarios",
-  plot_subtitle = "The subplots indicate heterogeneous distribution of population across grid regions under investigated percentiles",
+  plot_subtitle = "Heterogeneous distribution of population affected in the selected percentiles across grid regions",
   group_labels = group_pop_labels
 )
 
@@ -470,9 +504,9 @@ event_6_est_pivoted <- event_6_est_geo %>%
 event_6_est_plot = create_sf_faceted_plot(
   data = event_6_est_pivoted,
   state_shp_filtered,
-  legend_title = "Establishment (1,000)",
-  plot_title = "(B) Business establishments affected",
-  plot_subtitle = "Count of businesses impacted under various scenario percentiles",
+  legend_title = "Count\n(1,000)",
+  plot_title = "(B) Business establishments",
+  plot_subtitle = "Scenarios that may affect businesses within one standard deviation, two standard deviations, and the mean in the distribution",
   group_labels = group_est_labels
 )
 
@@ -525,8 +559,8 @@ event_8_gdp_pivoted <- event_8_gdp_geo %>%
 event_8_gdp_plot = create_sf_faceted_plot(
   data = event_8_gdp_pivoted,
   state_shp_filtered,
-  legend_title = "GDP (US $Bn)",
-  plot_title = "(C) Range of direct impact",
+  legend_title = "GDP\n(US $Bn)",
+  plot_title = "(C) Direct economic impact",
   plot_subtitle = "Distribution of GDP shock in events leading to blackout in eight grid regions",
   group_labels = group_gdp_labels
 )
@@ -553,9 +587,9 @@ event_8_pop_pivoted <- event_8_pop_geo %>%
 event_8_pop_plot = create_sf_faceted_plot(
   data = event_8_pop_pivoted,
   state_shp_filtered,
-  legend_title = "Population (Mn)",
+  legend_title = "Population\n(Mn)",
   plot_title = "(A) Population affected in eight grid failure scenarios",
-  plot_subtitle = "The subplots indicate heterogeneous distribution of population across grid regions under investigated percentiles",
+  plot_subtitle = "Heterogeneous distribution of population affected in the selected percentiles across grid regions",
   group_labels = group_pop_labels
 )
 
@@ -580,9 +614,9 @@ event_8_est_pivoted <- event_8_est_geo %>%
 event_8_est_plot = create_sf_faceted_plot(
   data = event_8_est_pivoted,
   state_shp_filtered,
-  legend_title = "Establishment (1,000)",
-  plot_title = "(B) Business establishments affected",
-  plot_subtitle = "Count of businesses impacted under various scenario percentiles",
+  legend_title = "Count\n(1,000)",
+  plot_title = "(B) Business establishments",
+  plot_subtitle = "Scenarios that may affect businesses within one standard deviation, two standard deviations, and the mean in the distribution",
   group_labels = group_est_labels
 )
 
@@ -605,3 +639,4 @@ ggsave(file_path, combined_event_8_plot, dpi = 300, width=8, height=4.5, bg="#f2
 
 dev.off()
 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     

@@ -7,6 +7,7 @@ library(usmap)
 library(dplyr)
 library(reshape2)
 library(tigris)
+library(ggforce)
 library(scales)
 library(tidycensus)
 library(patchwork)
@@ -97,37 +98,32 @@ create_grouped_cols_v2 <- function(data, col, breaks, labels) {
   return(data)
 }
 
-create_group_labels <- function(fill_variable, ceil_num) {
-  num_groups <- 10
+#  Group the variabvkes of interest into 10
+create_group_labels <- function(fill_variable) {
+  num_groups <- 8
   
   max_value <-
-    ceiling(max(summarised_rto_df[[fill_variable]], na.rm = TRUE))
+    max(summarised_rto_df[[fill_variable]], na.rm = TRUE)
   min_value <- min(summarised_rto_df[[fill_variable]], na.rm = TRUE)
-  min_value <- floor(min_value / ceil_num) * ceil_num
-  # Calculate the interval size, rounding to the nearest multiple of ceil_num
-  interval_size <-
-    ceiling((max_value - min_value) / num_groups / ceil_num) * ceil_num
   
-  print(max_value - min_value)
+  max_value_adjusted <- ceiling(max_value)
+  min_value_adjusted <- floor(min_value)
   
-  # Generate the groups
-  groups <- seq(min_value, max_value, by = interval_size)
+  range_value <- max_value_adjusted - min_value_adjusted
+  interval_size <- range_value / num_groups
   
-  print(groups)
+  first_group <- min_value_adjusted
+  last_group <- max_value_adjusted
   
-  # Adjust the last group to ensure it includes the max_value
-  # Adjust the last group if it does not reach max_value
-  if (max(groups) < max_value) {
-    groups <- c(groups[-length(groups)], max_value)
-  }
+  # Generate the remaining groups, ensuring they are ceiled at each step, excluding the adjusted max_value
+  remaining_groups <- seq(first_group + interval_size, max_value_adjusted - interval_size, by = interval_size)
+  remaining_groups <- ceiling(remaining_groups)
   
-  # Create labels for these groups
-  group_labels <-
-    paste0(groups[-length(groups)], "-", groups[-length(groups)] + interval_size - 1)
+  # Combine the first group with the remaining groups
+  groups <- c(first_group, remaining_groups, last_group)
   
-  # Ensure the last label correctly reflects the range up to max_value
-  group_labels <-
-    c(group_labels[-length(group_labels)], paste0(groups[length(groups) - 1], "-", max_value))
+  # Create group labels
+  group_labels <- paste0(groups[-length(groups)], "-", groups[-1] + 1 - 1)
   
   return(list(groups = groups, labels = group_labels))
 }
@@ -135,82 +131,9 @@ create_group_labels <- function(fill_variable, ceil_num) {
 
 #### Visualizations ####
 #### 1. Analysis of business data at zcta resolution ####
-
-# Regional Transmission Operators
-
 # color palette
 num_groups <- length(unique(summarised_rto_df$REGIONS))
 viridis_colors <- viridis::viridis(n = num_groups, direction = -1)
-
-plot1 <- ggplot(data = summarised_rto_df) +
-  geom_sf(
-    data = state_shp_filtered,
-    fill = NA,
-    color = "black",
-    size = 0.25,
-    linewidth = 0.15
-  ) +
-  geom_sf(
-    aes(fill = as.factor(REGIONS)),
-    color = "white",
-    linewidth = 0.5,
-    size = 0.25,
-    alpha = 0.9
-  ) +
-  theme_void() +
-  scale_fill_manual(
-    values = viridis_colors,
-    name = "Transmission Regions",
-    guide = guide_legend(
-      title.position = "top",
-      title.hjust = 0,
-      label.hjust = .0,
-      keywidth = 1.2,
-      keyheight = 0.7,
-      direction = "vertical"
-    )
-  ) +
-  labs(title = "FERC Order No.1000 Transmission Planning Regions") +
-  theme(
-    text = element_text(color = "#22211d"),
-    plot.margin = margin(0, 0, 0, 0, "cm"),
-    plot.background = element_rect(fill = "#f2f2f2", color = NA),
-    panel.background = element_rect(fill = "#f2f2f2", color = NA),
-    legend.background = element_rect(
-      fill = "#f5f5f2",
-      color = "black",
-      linetype = "solid"
-    ),
-    legend.position = c(0.99, 0.03),
-    legend.justification = c(1, 0),
-    legend.text = element_text(size = 7),
-    legend.title = element_text(size = 8),
-    legend.key.height = unit(0.5, "lines"),
-    legend.key.width = unit(1.2, "lines"),
-    legend.margin = margin(3, 3, 3, 3),
-    plot.title = element_text(
-      size = 12,
-      hjust = 0.01,
-      margin = margin(
-        b = -0.1,
-        t = 0.4,
-        l = 2,
-        unit = "cm"
-      )
-    )
-  ) +
-  coord_sf() +
-  theme(text = element_text(family = "Times New Roman"))
-
-plot1
-
-# save plot 1
-path_out = file.path(folder, 'figures', 'regional_planning.png')
-ggsave(path_out,
-       plot1,
-       dpi = 300,
-       width = 10,
-       height = 8)
 
 # Continous variables plots
 create_sf_plot <-
@@ -257,6 +180,7 @@ create_sf_plot <-
         plot.title = element_text(
           size = 11,
           hjust = 0.03,
+          face = "bold",
           margin = margin(
             b = 0.2,
             t = 0,
@@ -289,7 +213,7 @@ create_sf_plot <-
   }
 
 # Employees
-group_info_Total_EMP = create_group_labels("Total_EMP", ceil_num = 3)
+group_info_Total_EMP = create_group_labels("Total_EMP")
 group_Total_EMP <- group_info_Total_EMP$groups
 labels_Total_EMP <- group_info_Total_EMP$labels
 
@@ -298,21 +222,21 @@ Total_EMP_grouped_df = create_grouped_cols_v2(summarised_rto_df,
                                               group_Total_EMP,
                                               labels_Total_EMP)
 
-# Plot 2 Employees
-plot2 <- create_sf_plot(
+# Plot 1 Employees
+plot1 <- create_sf_plot(
   data = Total_EMP_grouped_df,
   state_shp_filtered,
   fill_variable = "Total_EMP_Group",
-  legend_title = "Employment (Mn)",
+  legend_title = "Count\n(Mn)",
   plot_title = "(C) Count of employees",
-  sub_title = "Total number of employed persons within the grid regions",
+  sub_title = "Quanity of employed persons aggregated at Zip code areas",
   group_labels = labels_Total_EMP
 )
 
-print(plot2)
+print(plot1)
 
 # Annual employees compensation
-group_info_Total_AP = create_group_labels("Total_AP", ceil_num = 200)
+group_info_Total_AP = create_group_labels("Total_AP")
 group_Total_AP <- group_info_Total_AP$groups
 labels_Total_AP <- group_info_Total_AP$labels
 
@@ -321,21 +245,21 @@ Total_AP_grouped_df = create_grouped_cols_v2(summarised_rto_df,
                                              group_Total_AP,
                                              labels_Total_AP)
 
-# Plot 3 Employee renumeration
-plot3 <- create_sf_plot(
+# Plot 2 Employee renumeration
+plot2 <- create_sf_plot(
   data = Total_AP_grouped_df,
   state_shp_filtered,
   fill_variable = "Total_AP_Group",
-  legend_title = "Payroll ($Bn)",
+  legend_title = "Payroll\n($Bn)",
   plot_title = "(B) Annual employee compensation",
-  sub_title = "Total payments made to employees at electricity grid regions",
+  sub_title = " Total remuneration for labor provided by employees",
   group_labels = labels_Total_AP
 )
 
-print(plot3)
+print(plot2)
 
-# Plot 4: Business Establishments in the Region
-group_info_Total_EST = create_group_labels("Total_EST", ceil_num = 100)
+# Plot 3: Business Establishments in the Region
+group_info_Total_EST = create_group_labels("Total_EST")
 group_Total_EST <- group_info_Total_EST$groups
 labels_Total_EST <- group_info_Total_EST$labels
 
@@ -345,20 +269,20 @@ Total_EST_grouped_df = create_grouped_cols_v2(summarised_rto_df,
                                               labels_Total_EST)
 
 # Business establishements
-plot4 <- create_sf_plot(
+plot3 <- create_sf_plot(
   data = Total_EST_grouped_df,
   state_shp_filtered,
   fill_variable = "Total_EST_Group",
-  legend_title = "Establishment (1,000)",
-  plot_title = "(B) Total business establishments",
-  sub_title = "Business count aggregated by ZCTA within electricity grid regions",
+  legend_title = "Count\n(1,000)",
+  plot_title = "(B) Business establishments",
+  sub_title = "Count of establishments at Zip Code Tabulation Areas",
   group_labels = labels_Total_EST
 )
 
-print(plot4)
+print(plot3)
 
-# Plot 5: Population in the Regions
-group_info_Total_POP20 = create_group_labels("Total_POP20", ceil_num = 6)
+# Plot 4: Population in the Regions
+group_info_Total_POP20 = create_group_labels("Total_POP20")
 group_Total_POP20 <- group_info_Total_POP20$groups
 labels_Total_POP20 <- group_info_Total_POP20$labels
 
@@ -367,22 +291,21 @@ Total_POP20_grouped_df = create_grouped_cols_v2(summarised_rto_df,
                                                 group_Total_POP20,
                                                 labels_Total_POP20)
 
-# Plot 5 Population
-plot5 <- create_sf_plot(
+# Plot 4 Population
+plot4 <- create_sf_plot(
   data = Total_POP20_grouped_df,
   state_shp_filtered,
   fill_variable = "Total_POP20_Group",
-  legend_title = "Population (Mn)",
-  plot_title = "(A) Population in the regions",
-  sub_title = " 2020 decencial census population aggregated by ZCTA",
+  legend_title = "Population\n(Mn)",
+  plot_title = "(A) 2020 decencial census population",
+  sub_title = "Population count aggregated at Zip code tabulation areas in the regions",
   group_labels = labels_Total_POP20
 )
 
-print(plot5)
+print(plot4)
 
-# Plot 6: Regional Aggregation of the State GDP Apportionment by Population
-group_info_Total_ZCTAGDP = create_group_labels("Total_ZCTAGDP", ceil_num =
-                                                 1)
+# Plot 5: Regional Aggregation of the State GDP Apportionment by Population
+group_info_Total_ZCTAGDP = create_group_labels("Total_ZCTAGDP")
 group_Total_ZCTAGDP <- group_info_Total_ZCTAGDP$groups
 labels_Total_ZCTAGDP <- group_info_Total_ZCTAGDP$labels
 
@@ -391,21 +314,21 @@ Total_ZCTAGDP_grouped_df = create_grouped_cols_v2(summarised_rto_df,
                                                   group_Total_ZCTAGDP,
                                                   labels_Total_ZCTAGDP)
 
-# Plot 6
-plot6 <- create_sf_plot(
+# Plot 5
+plot5 <- create_sf_plot(
   data = Total_ZCTAGDP_grouped_df,
   state_shp_filtered,
   fill_variable = "Total_ZCTAGDP_Group",
-  legend_title = "GDP ($Bn)",
+  legend_title = "GDP\n($Bn)",
   plot_title = "(D) Regional gross-value added GDP",
-  sub_title = "GDP estimates based on the business count categorized by NAICS",
+  sub_title = "Estimates of GDP contribution by businesses categorized using NAICS codes",
   group_labels = labels_Total_ZCTAGDP
   
 )
-plot6
+plot5
 
 # Combine the plots
-combined_plot <- ggarrange(plot5, plot4, plot2, plot6,
+combined_plot <- ggarrange(plot4, plot3, plot1, plot5,
                            ncol = 2,
                            nrow = 2)
 
@@ -439,33 +362,28 @@ summary_df <- filtered_df %>%
   )
 
 # Box plot
-plot6 <-
-  ggplot(filtered_df, aes(
-    x = factor(Event),
-    y = GDPSum,
-    fill = factor(Event)
-  )) +
-  geom_boxplot(outlier.shape = NA) +  # Create boxplot
-  stat_boxplot(geom = "errorbar", width = 0.25) +  # Add horizontal lines at the whiskers
-  scale_fill_brewer(palette = "Set1", name = "Quantity of Failed\nFERC Regions") +  # Choose a palette
+plot6 <- ggplot(filtered_df, aes(x = factor(Event), y = GDPSum, color = factor(Event))) +
+  geom_sina(position = position_nudge(x = 0), size = 0.05, alpha = 0.5)+  # Add jittered points in a violin shape
+  geom_boxplot(fill = NA, outlier.shape = NA, color = "#000000", size = 0.3, fatten=0.9, alpha = 0.8) +
+  stat_boxplot(geom = "errorbar", width = 0.1, color="#000000", alpha = 0.8) +
+  scale_color_brewer(palette = "Set1", name = "Quantity of Failed\nFERC Regions") +  # Coloring points
   labs(
-    title = "(B) Direct economic impact per scenario",
-    subtitle = "Events indicate quanity of failed grid regions",
+    title = "(B) Direct economic impact per event scenario",
+    subtitle = "Violin jitters indicate distribution of the impacts per event",
     y = "Daily GDP (US $Bn)",
     x = "Simulation Event"
   ) +
-  theme_minimal() +  # Use minimal theme
   theme(
     legend.position = "bottom",
     text = element_text(family = "Times New Roman"),
-    # Apply Times New Roman font
     plot.title = element_text(size = 12, face = "bold"),
     plot.subtitle = element_text(size = 11),
     axis.title.x = element_text(size = 11),
     axis.title.y = element_text(size = 11),
     axis.text.x = element_text(hjust = 1),
-    panel.grid.major = element_line(color = "white", linewidth = 0.5),
+    panel.grid = element_line(color = "white"),
     panel.background = element_rect(fill = "#f2f2f2", color = NA),
+    panel.border = element_rect(colour = "black", fill=NA, linewidth = 0.4),
     plot.background = element_rect(fill = "#f2f2f2", color = NA),
     legend.title = element_text(size = 9, face = "bold")
   )
@@ -507,8 +425,9 @@ plot7 <-
     legend.justification = c(0.5, 0.5),
     legend.text = element_text(size = 8),
     legend.title = element_text(size = 9, face = "bold"),
+    panel.border = element_rect(colour = "black", fill=NA, linewidth = 0.4),
     panel.background = element_rect(fill = "#f2f2f2"),
-    plot.background = element_rect(fill = "#f2f2f2"),
+    plot.background = element_rect(fill = "#f2f2f2", color=NA),
     legend.background = element_rect(fill = "#f2f2f2"),
     text = element_text(family = "Times New Roman")
   )
@@ -534,58 +453,142 @@ ggsave(
   dpi = 300,
   width = 8,
   height = 4,
-  bg = "white"
+  bg = "#f2f2f2"
 )
 
 ### Heat Maps of Grid Regions ###
 
-# Load the data
+# Load the data with population density and GDP per capita
 grid_csv <- read.csv("grid_data.csv")
 
-# Rank the grid regions by population density and normalize the metrics
-grid_csv <- grid_csv %>%
+# Merge datasets on 'REGIONS'
+merged_df <- merge(grid_csv, summarised_rto_df, by = "REGIONS")
+
+# Select only the columns of interest
+final_df <- merged_df[c("REGIONS", "Total_EMP", "Total_AP", "Total_EST", "Total_POP20", "PopDensity", "GDPHead")]
+
+# Rank the grid regions by population density
+final_df <- final_df %>%
   arrange(desc(PopDensity)) %>%
   mutate(rank = row_number()) %>%
-  select(REGIONS, PopDensity, GDPHead, EST, DailyGDP, POP20) %>%
-  mutate(across(-REGIONS, scales::rescale))
+  select(REGIONS, PopDensity, GDPHead, Total_EMP, Total_AP, Total_EST, Total_POP20, rank) %>%
+  mutate(across(c(Total_EMP, Total_AP, Total_EST, Total_POP20, PopDensity, GDPHead), scales::rescale))
 
 # Reshape the data for plotting
-grid_long <- grid_csv %>%
-  arrange(desc(PopDensity)) %>%
-  pivot_longer(cols = -REGIONS, names_to = 'metric', values_to = 'value') %>%
-  mutate(REGIONS = factor(REGIONS, levels = unique(REGIONS)))
+grid_long <- final_df %>%
+  pivot_longer(cols = -c(REGIONS, rank), names_to = 'metric', values_to = 'value') %>%
+  mutate(REGIONS = factor(REGIONS, levels = rev(unique(final_df$REGIONS))))
 
 # Rename metrics for the plot
-metric_labels <- c(PopDensity = "Pop density", GDPHead = "GDP per capita", 
-                   EST = "Establishment", DailyGDP = "Daily GDP", POP20 = "Population")
+metric_labels <- c(PopDensity = "Population\ndensity (sq.Km)", GDPHead = "GDP\nper capita",
+                   Total_EMP = "Employee\ncount", Total_AP = "Employees\nTotal pay ($US)",
+                   Total_EST = "Business\ncount", Total_POP20 = "Population\n(2020)")
+
+# Grid regions heatmap data
 grid_long$metric <- factor(grid_long$metric, levels = names(metric_labels), labels = metric_labels)
 
+
+# Grid regions ploy from summarized_rto_df
+grid_regions_plot <- ggplot(data = summarised_rto_df) +
+  geom_sf(
+    data = state_shp_filtered,
+    fill = NA,
+    color = "black",
+    size = 0.25,
+    linewidth = 0.15
+  ) +
+  geom_sf(
+    aes(fill = as.factor(REGIONS)),
+    color = "white",
+    linewidth = 0.5,
+    size = 0.25,
+    alpha = 0.9
+  ) +
+  theme_void() +
+  scale_fill_manual(
+    values = viridis_colors,
+    name = "Transmission Regions",
+    guide = guide_legend(
+      title.position = "top",
+      title.hjust = 0,
+      label.hjust = .0,
+      keywidth = 1.2,
+      keyheight = 0.7,
+      direction = "vertical"
+    )
+  ) +
+  labs(title = "(A) Transmission Planning Regions", subtitle="The regions are digitized based on ERC Order No.1000 ") +
+  theme(
+    text = element_text(color = "#22211d"),
+    plot.margin = margin(0, 0, 0, 0, "cm"),
+    plot.background = element_rect(fill = "#f2f2f2", color = NA),
+    panel.background = element_rect(fill = "#f2f2f2", color = NA),
+    legend.position = "right",
+    legend.justification = c(0.99, 0.1),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 9, face="bold"),
+    legend.key.height = unit(0.2, "lines"),
+    legend.key.width = unit(1.2, "lines"),
+    plot.title = element_text(
+      size = 12,
+      hjust = 0.05,
+      face = "bold",
+    ),
+    plot.subtitle = element_text(
+      hjust = 0.056,
+      size = 10,
+    ),
+  ) +
+  coord_sf() +
+  theme(text = element_text(family = "Times New Roman"))
+
+grid_regions_plot
+
 # Create the ggplot heatmap
-heatmap_plot <- ggplot(grid_long, aes(x = REGIONS, y = metric, fill = value)) +
+heatmap_plot <- ggplot(grid_long, aes(x = metric, y = REGIONS, fill = value)) +
   geom_tile() +
-  scale_fill_viridis_c(direction=-1) +  # Using viridis color scale
-  labs(x = "FER grid regions", y = "",
-       title = "Heatmap of electricity grid regions by economic metrics",
+  scale_fill_viridis_c(direction=-1) +
+  labs(x = "", y = "",
+       title = "(B) Heatmap of electricity grid regions by economic metrics",
        subtitle = "The regions are ranked by population density") +
   theme_minimal() +
+  geom_text(aes(label = ifelse(metric == "Population\ndensity (sq.Km)", as.character(rank), "")), color = "#ffffff", size = 2.5) +
+  scale_x_discrete(labels = metric_labels) +
   theme(
-    plot.title = element_text(size = 11, face = 'bold'),
-    plot.background = element_rect(fill = "#f2f2f2"),
-    text = element_text(family = "Times New Roman"), 
-        legend.position = "none",
-        axis.text.x = element_text(angle = 45, hjust = 1, size=9))
+    plot.title = element_text(size = 12, face = 'bold', hjust = -0.5),
+    plot.subtitle = element_text(size = 10, hjust = -0.28),
+    plot.background = element_rect(fill = "#f2f2f2", color = NA),
+    panel.background = element_rect(fill = "#f2f2f2", color = NA),
+    text = element_text(family = "Times New Roman"),
+    legend.position = "none",
+    axis.ticks.length = unit(0.2, "cm"),
+    axis.ticks.x = element_line(color = "#696969", linewidth=0.1),
+    axis.text.x = element_text( hjust = 0.5, size=8),
+    axis.text.y= element_text(size=8))
 
 heatmap_plot
 
-path_out = file.path(folder, 'figures', 'heat_map.png')
+# Combine the grid regions and heatmap plot
+combined_plot_3 <- ggarrange(
+    grid_regions_plot,
+    heatmap_plot,
+    ncol = 1,
+    nrow = 2
+  )
+
+combined_plot_3
+
+path_out = file.path(folder, 'figures', 'heatmap_and_rtomap.png')
 ggsave(
   path_out,
-  heatmap_plot,
+  combined_plot_3,
   dpi = 300,
   width = 8,
-  height = 4,
-  bg = "white"
+  height = 8,
+  bg = "#f2f2f2"
 )
 
 
+
 dev.off()
+
