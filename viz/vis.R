@@ -517,7 +517,7 @@ grid_regions_plot <- ggplot(data = summarised_rto_df) +
       direction = "vertical"
     )
   ) +
-  labs(title = "(A) Transmission Planning Regions", subtitle="The regions are digitized based on ERC Order No.1000 ") +
+  labs(title = "(A) Transmission Planning Regions", subtitle="The regions are digitized based on FERC Order No.1000 ") +
   theme(
     text = element_text(color = "#22211d"),
     plot.margin = margin(0, 0, 0, 0, "cm"),
