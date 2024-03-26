@@ -58,6 +58,8 @@ replace_zeros_with_NA <- function(df, cols) {
 
 # Read the general grid regions data
 grid_csv <- read.csv("grid_data.csv")
+grid_csv$POP20 <- grid_csv$POP20 / 1000000
+
 
 #  Create variable groups and labels in intervals 8
 create_group_labels <- function(fill_variable) {
@@ -95,12 +97,12 @@ gdp_groups <- gdp_label_list$groups # Groups
 group_gdp_labels <-  gdp_label_list$labels # Labels
 
 # Pop groups
-pop_label_list <- create_group_labels("DailyGDP") # Groups and labels
+pop_label_list <- create_group_labels("POP20") # Groups and labels
 pop_groups <- pop_label_list$groups # Groups
 group_pop_labels <-  pop_label_list$labels # Labels
 
 # Est groups
-est_label_list <- create_group_labels("DailyGDP") # Groups and labels
+est_label_list <- create_group_labels("EST") # Groups and labels
 est_groups <- est_label_list$groups # Groups
 group_est_labels <-  est_label_list$labels # Labels
 
@@ -186,8 +188,8 @@ create_sf_faceted_plot <-
                                      ),
         legend.position = "right",
         legend.justification = "right",
-        legend.text = element_text(size = 7),
-        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 7),
         legend.margin = margin(t = 0, r = 0, b = 0, l = 0),  # Reduces margin around the legend
         legend.box.margin = margin(t = 0, r = 0, b = 0, l = 0),  # Reduces space between legend and plot
         legend.key.height = unit(2, "mm"),

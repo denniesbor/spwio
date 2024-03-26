@@ -228,8 +228,8 @@ plot1 <- create_sf_plot(
   state_shp_filtered,
   fill_variable = "Total_EMP_Group",
   legend_title = "Count\n(Mn)",
-  plot_title = "(C) Count of employees",
-  sub_title = "Quanity of employed persons aggregated at Zip code areas",
+  plot_title = "(C) Employees according to 2020 statistics of US businesses",
+  sub_title = "Quantity of employed persons aggregated to grid regions.",
   group_labels = labels_Total_EMP
 )
 
@@ -252,7 +252,7 @@ plot2 <- create_sf_plot(
   fill_variable = "Total_AP_Group",
   legend_title = "Payroll\n($Bn)",
   plot_title = "(B) Annual employee compensation",
-  sub_title = " Total remuneration for labor provided by employees",
+  sub_title = " Total remuneration for labor provided by employees.",
   group_labels = labels_Total_AP
 )
 
@@ -274,8 +274,8 @@ plot3 <- create_sf_plot(
   state_shp_filtered,
   fill_variable = "Total_EST_Group",
   legend_title = "Count\n(1,000)",
-  plot_title = "(B) Business establishments",
-  sub_title = "Count of establishments at Zip Code Tabulation Areas",
+  plot_title = "(B) Businesses from 2020 statistics of US businesses",
+  sub_title = "Count of establishments at zip code tabulation areas.",
   group_labels = labels_Total_EST
 )
 
@@ -297,8 +297,8 @@ plot4 <- create_sf_plot(
   state_shp_filtered,
   fill_variable = "Total_POP20_Group",
   legend_title = "Population\n(Mn)",
-  plot_title = "(A) 2020 decencial census population",
-  sub_title = "Population count aggregated at Zip code tabulation areas in the regions",
+  plot_title = "(A) Population from 2020 decennial census",
+  sub_title = "Population aggregated from zip code tabulation areas to grid regions.",
   group_labels = labels_Total_POP20
 )
 
@@ -320,8 +320,8 @@ plot5 <- create_sf_plot(
   state_shp_filtered,
   fill_variable = "Total_ZCTAGDP_Group",
   legend_title = "GDP\n($Bn)",
-  plot_title = "(D) Regional gross-value added GDP",
-  sub_title = "Estimates of GDP contribution by businesses categorized using NAICS codes",
+  plot_title = "(D) 2022 Regional gross-value added GDP",
+  sub_title = "Estimated GDP contribution aggregated to grid regions.",
   group_labels = labels_Total_ZCTAGDP
   
 )
@@ -465,28 +465,41 @@ grid_csv <- read.csv("grid_data.csv")
 merged_df <- merge(grid_csv, summarised_rto_df, by = "REGIONS")
 
 # Select only the columns of interest
-final_df <- merged_df[c("REGIONS", "Total_EMP", "Total_AP", "Total_EST", "Total_POP20", "PopDensity", "GDPHead")]
+selected_df <- merged_df[c("REGIONS", "Total_EMP", "Total_AP", "Total_EST", "Total_POP20", "PopDensity", "GDPHead")]
 
-# Rank the grid regions by population density
+# Rank the grid regions by all metrics
 final_df <- final_df %>%
   arrange(desc(PopDensity)) %>%
-  mutate(rank = row_number()) %>%
-  select(REGIONS, PopDensity, GDPHead, Total_EMP, Total_AP, Total_EST, Total_POP20, rank) %>%
+  mutate(rank_PopDensity = row_number()) %>%
+  arrange(desc(GDPHead)) %>%
+  mutate(rank_GDPHead = row_number()) %>%
+  arrange(desc(Total_EMP)) %>%
+  mutate(rank_Total_EMP = row_number()) %>%
+  arrange(desc(Total_AP)) %>%
+  mutate(rank_Total_AP = row_number()) %>%
+  arrange(desc(Total_EST)) %>%
+  mutate(rank_Total_EST = row_number()) %>%
+  arrange(desc(Total_POP20)) %>%
+  mutate(rank_Total_POP20 = row_number()) %>%
+  select(REGIONS, PopDensity, GDPHead, Total_EMP, Total_AP, Total_EST, Total_POP20, 
+         rank_PopDensity, rank_GDPHead, rank_Total_EMP, rank_Total_AP, rank_Total_EST, rank_Total_POP20) %>%
   mutate(across(c(Total_EMP, Total_AP, Total_EST, Total_POP20, PopDensity, GDPHead), scales::rescale))
 
-# Reshape the data for plotting
+# Reshape the data for plotting, including ranks
 grid_long <- final_df %>%
-  pivot_longer(cols = -c(REGIONS, rank), names_to = 'metric', values_to = 'value') %>%
+  pivot_longer(cols = -REGIONS, names_to = 'metric', values_to = 'value') %>%
   mutate(REGIONS = factor(REGIONS, levels = rev(unique(final_df$REGIONS))))
 
-# Rename metrics for the plot
-metric_labels <- c(PopDensity = "Population\ndensity (sq.Km)", GDPHead = "GDP\nper capita",
+
+# Rename metrics for the plot, include ranks
+metric_labels <- c(PopDensity = "Population\ndensity (sq.Km)", GDPHead = "GDP\nper capita ($US/person)",
                    Total_EMP = "Employee\ncount", Total_AP = "Employees\nTotal pay ($US)",
-                   Total_EST = "Business\ncount", Total_POP20 = "Population\n(2020)")
+                   Total_EST = "Business\ncount", Total_POP20 = "Population\n(2020)",
+                   rank_PopDensity = "Rank: PopDensity", rank_GDPHead = "Rank: GDPHead",
+                   rank_Total_EMP = "Rank: Total_EMP", rank_Total_AP = "Rank: Total_AP",
+                   rank_Total_EST = "Rank: Total_EST", rank_Total_POP20 = "Rank: Total_POP20")
 
-# Grid regions heatmap data
 grid_long$metric <- factor(grid_long$metric, levels = names(metric_labels), labels = metric_labels)
-
 
 # Grid regions ploy from summarized_rto_df
 grid_regions_plot <- ggplot(data = summarised_rto_df) +
@@ -517,7 +530,7 @@ grid_regions_plot <- ggplot(data = summarised_rto_df) +
       direction = "vertical"
     )
   ) +
-  labs(title = "(A) Transmission Planning Regions", subtitle="The regions are digitized based on FERC Order No.1000 ") +
+  labs(title = "(A) Transmission Planning Regions", subtitle="The regions are digitized based on FERC Order No.1000.") +
   theme(
     text = element_text(color = "#22211d"),
     plot.margin = margin(0, 0, 0, 0, "cm"),
@@ -545,26 +558,69 @@ grid_regions_plot <- ggplot(data = summarised_rto_df) +
 grid_regions_plot
 
 # Create the ggplot heatmap
+
+# Rank the grid regions by socio-econ metrics
+final_df <- selected_df %>%
+  arrange(desc(PopDensity)) %>%
+  mutate(rank_PopDensity = row_number()) %>%
+  arrange(desc(GDPHead)) %>%
+  mutate(rank_GDPHead = row_number()) %>%
+  arrange(desc(Total_EMP)) %>%
+  mutate(rank_Total_EMP = row_number()) %>%
+  arrange(desc(Total_AP)) %>%
+  mutate(rank_Total_AP = row_number()) %>%
+  arrange(desc(Total_EST)) %>%
+  mutate(rank_Total_EST = row_number()) %>%
+  arrange(desc(Total_POP20)) %>%
+  mutate(rank_Total_POP20 = row_number()) %>%
+  select(REGIONS, PopDensity, GDPHead, Total_EMP, Total_AP, Total_EST, Total_POP20, 
+         rank_PopDensity, rank_GDPHead, rank_Total_EMP, rank_Total_AP, rank_Total_EST, rank_Total_POP20) %>%
+  mutate(across(c(Total_EMP, Total_AP, Total_EST, Total_POP20, PopDensity, GDPHead), scales::rescale)) %>%
+  arrange(desc(PopDensity))
+
+# Reshape the data for plotting, excluding rank columns
+grid_long <- final_df %>%
+  pivot_longer(cols = -c(REGIONS, starts_with("rank_")), names_to = 'metric', values_to = 'value') %>%
+  mutate(REGIONS = factor(REGIONS, levels = rev(unique(REGIONS))))
+
+
+# Rename metrics for the plot, include ranks
+metric_labels <- c(PopDensity = "Population\ndensity (sq.Km)", GDPHead = "GDP\nper capita ($US/person)",
+                   Total_EMP = "Employee\ncount", Total_AP = "Employees\nTotal pay ($US)",
+                   Total_EST = "Business\ncount", Total_POP20 = "Population\n(2020)")
+
+
+# Grid regions heatmap data
+grid_long$metric <- factor(grid_long$metric, levels = names(metric_labels), labels = metric_labels)
+
+# Prepare the heatmap plot
 heatmap_plot <- ggplot(grid_long, aes(x = metric, y = REGIONS, fill = value)) +
   geom_tile() +
-  scale_fill_viridis_c(direction=-1) +
+  scale_fill_viridis_c(direction = -1) +
   labs(x = "", y = "",
-       title = "(B) Heatmap of electricity grid regions by economic metrics",
-       subtitle = "The regions are ranked by population density") +
+       title = "(B) Comparison of key grid regions socio-economic factors",
+       subtitle = "Cell annotations indicate the ranking by socio-economic metric.") +
   theme_minimal() +
-  geom_text(aes(label = ifelse(metric == "Population\ndensity (sq.Km)", as.character(rank), "")), color = "#ffffff", size = 2.5) +
   scale_x_discrete(labels = metric_labels) +
   theme(
-    plot.title = element_text(size = 12, face = 'bold', hjust = -0.5),
-    plot.subtitle = element_text(size = 10, hjust = -0.28),
+    plot.title = element_text(size = 12, face = 'bold', hjust = -0.45),
+    plot.subtitle = element_text(size = 10, hjust = -0.34),
     plot.background = element_rect(fill = "#f2f2f2", color = NA),
     panel.background = element_rect(fill = "#f2f2f2", color = NA),
     text = element_text(family = "Times New Roman"),
     legend.position = "none",
     axis.ticks.length = unit(0.2, "cm"),
-    axis.ticks.x = element_line(color = "#696969", linewidth=0.1),
-    axis.text.x = element_text( hjust = 0.5, size=8),
-    axis.text.y= element_text(size=8))
+    axis.ticks.x = element_line(color = "#696969", linewidth = 0.1),
+    axis.text.x = element_text(hjust = 0.5, size=8),
+    axis.text.y = element_text(size=8)
+  ) +
+  # Add annotations manually for each metric
+  geom_text(aes(label = ifelse(metric == "Population\ndensity (sq.Km)", as.character(rank_PopDensity), "")), color = "#ffffff", size = 2.5) +
+  geom_text(aes(label = ifelse(metric == "GDP\nper capita ($US/person)", as.character(rank_GDPHead), "")), color = "#ffffff", size = 2.5) +
+  geom_text(aes(label = ifelse(metric == "Employee\ncount", as.character(rank_Total_EMP), "")), color = "#ffffff", size = 2.5) +
+  geom_text(aes(label = ifelse(metric == "Employees\nTotal pay ($US)", as.character(rank_Total_AP), "")), color = "#ffffff", size = 2.5) +
+  geom_text(aes(label = ifelse(metric == "Business\ncount", as.character(rank_Total_EST), "")), color = "#ffffff", size = 2.5) +
+  geom_text(aes(label = ifelse(metric == "Population\n(2020)", as.character(rank_Total_POP20), "")), color = "#ffffff", size = 2.5)
 
 heatmap_plot
 
@@ -587,8 +643,6 @@ ggsave(
   height = 8,
   bg = "#f2f2f2"
 )
-
-
 
 dev.off()
 
