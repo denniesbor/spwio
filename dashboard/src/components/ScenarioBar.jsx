@@ -21,8 +21,8 @@ ChartJS.register(
 
 const BarComponent = () => {
   const { scenarioData, sidebarVal, estLabels } = useAppContext();
- const { direct, leon, gdp } = scenarioData;
- 
+  const { direct, leon, gdp } = scenarioData;
+
   const data = {
     labels: estLabels,
     datasets: [
@@ -51,7 +51,7 @@ const BarComponent = () => {
     plugins: {
       title: {
         display: true,
-        text: `Direct and Indirect Losses by NAICS ($billion) for Scenario ${
+        text: `Direct and Indirect Losses by NAICS ($Bn) for Scenario ${
           sidebarVal.charAt(0).toUpperCase() + sidebarVal.slice(1)
         }`,
         font: { size: 18, color: "#000000" },
