@@ -92,7 +92,7 @@ create_sf_plot <-
            labels, levels, sizing_vals) {
     
     num_groups <- length(unique(labels))
-    viridis_colors <- viridis::viridis(n = num_groups, direction = -1, option = "plasma")
+    viridis_colors <- viridis::viridis(n = num_groups, direction = 1, option = "plasma")
     
     plot2 <- ggplot(data = data) +
       geom_sf(data = boundary_data, color = "gray", size = 0.2, fill = NA, alpha=0.8) +
@@ -135,7 +135,7 @@ failure_probability_plot <- create_sf_plot(ss_geojson,
                                            subset_data,
                                            pjm_geojson,
                                            "Probability",
-                                           "(A) Substation Failure Probabilities",
+                                           "(C) Substation Failure Probabilities",
                                            "The probability of the Substation Failure during Peak Halloween storm",
                                            "factor_probability_failure",
                                            failure_labels, failure_levels, sizing_vals)
@@ -161,7 +161,7 @@ transformer_count_plot <- create_sf_plot(ss_geojson,
                                          subset_data,
                                          pjm_geojson,
                                          "Transformer Count",
-                                         "(B) Quantity of Transformers",
+                                         "(A) Quantity of Transformers",
                                          "The number of Transformers in the Substation",
                                          "factor_transformer_count",
                                          transformer_count_lbls, transformer_count, sizing_vals)
@@ -186,7 +186,7 @@ gic_plot <- create_sf_plot(ss_geojson,
                                            subset_data,
                                            pjm_geojson,
                                            "GIC (A)",
-                                           "(C) Quantity of GIC ",
+                                           "(B) Quantity of GIC ",
                                            "Peak GIC Flowing During 2003 Halloween Storm",
                                            "factor_gic_approx",
                            gic_labels, gic_levels, sizing_vals)
@@ -271,7 +271,7 @@ gdp_plot <- create_sf_plot(ss_geojson,
 print(gdp_plot)
 
 # Combine the 6 Plots
-combined_plot_1 <- failure_probability_plot / transformer_count_plot / gic_plot / pop20_plot / est_plot / gdp_plot
+combined_plot_1 <- transformer_count_plot/ gic_plot / failure_probability_plot / pop20_plot / est_plot / gdp_plot
 # Adjust the layout
 combined_plot_1 <- combined_plot_1 + plot_layout(ncol = 2, nrow = 3) &
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
@@ -415,7 +415,7 @@ i_plot <- create_sf_plot(tl_geojson,
 print(i_plot)
 
 # Combine the 4 Plots
-combined_plot_2 <- v_class_plot/ voltage_plot / e_field_plot / i_plot
+combined_plot_2 <- v_class_plot/ e_field_plot /voltage_plot / i_plot
 # Adjust the layout
 combined_plot_2 <- combined_plot_2 + plot_layout(ncol = 2, nrow = 2) &
   theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
