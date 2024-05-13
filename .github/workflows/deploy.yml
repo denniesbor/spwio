@@ -4,7 +4,7 @@ name: Deploy static content to GitHub Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["data"]
+    branches: ["main"]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,28 +30,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      # Create the .nojekyll file in the root directory
+      - name: Create .nojekyll file
+        run: touch .nojekyll
+
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
           cache: "npm"
           cache-dependency-path: ./dashboard/package-lock.json
+
       - name: Install dependencies
         run: npm install
         working-directory: ./dashboard
+
       - name: Build
         run: npm run build
         working-directory: ./dashboard
+
       - name: rename build to docs
         run: mv dist docs
         working-directory: ./dashboard
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload dist repository
           path: "./dashboard/docs"
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
