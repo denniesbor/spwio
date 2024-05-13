@@ -3,6 +3,7 @@
 # History files
 viz/.Rhistory
 viz/.Rapp.history
+viz/misc
 
 # Session Data files
 viz/.RData

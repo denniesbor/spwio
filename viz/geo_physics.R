@@ -64,7 +64,7 @@ plot(st_geometry(pjm_geojson))
 plot(st_geometry(subset_data), add = TRUE)
 
 
-register_google(key = "AIzaSyAPDiZd2fgRU9QvlXBwXOdailVYC6AFsTQ")
+register_google(key = "")
 
 # Define the bounding box
 bbox <- c(left = -91, bottom = 36, right = -72, top = 43)
