@@ -91,7 +91,7 @@ export const AppContextProvider = ({ children }) => {
     setSelectedEconomicData(value);
   };
 
-  //  function to parse json impact data
+  //  Function to parse json impact data
   function extractDataForScenario(jsonData, scenario) {
     // Transform into an array of objects
     const dataArray = Object.keys(jsonData.Scenario).map((key) => {
@@ -126,9 +126,6 @@ export const AppContextProvider = ({ children }) => {
       gdp: groupedData.GDP?.map((item) => item.Output) || [],
     });
   }, [impact_data, sidebarVal]);
-
-
-
 
 useEffect(() => {
   // This effect handles updating data based on sidebarVal
@@ -228,7 +225,6 @@ setScenarioEconomicData({
 
   }
 }, [scenarioRegions, economic_data, scenarioData]);
-
 
 
   const contextValue = {

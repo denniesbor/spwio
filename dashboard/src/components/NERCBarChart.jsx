@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -7,6 +8,10 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import {
+  BarWithErrorBarsController,
+  BarWithErrorBar,
+} from "chartjs-chart-error-bars";
 import { Bar } from "react-chartjs-2";
 import { useAppContext } from "../AppContext";
 
@@ -14,6 +19,8 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  BarWithErrorBarsController, 
+  BarWithErrorBar,
   Title,
   Tooltip,
   Legend
@@ -22,15 +29,28 @@ ChartJS.register(
 const BarComponent = () => {
   const { economic_data, selectedEconomicData } = useAppContext();
 
+  const prepareDataWithErrors = (data) => {
+    return data.map((value) => ({
+      y: value,
+      yMin: value * 0.8, // 10% less than the actual value
+      yMax: value * 1.2, // 10% more than the actual value
+    }));
+  };
+
   const gridData = {
     labels: Object.keys(economic_data[selectedEconomicData]),
     datasets: [
       {
         label: "FERC Regions",
-        data: Object.values(economic_data[selectedEconomicData]),
+        data: prepareDataWithErrors(
+          Object.values(economic_data[selectedEconomicData])
+        ),
         backgroundColor: "rgba(54, 162, 235, 0.5)",
         borderColor: "rgba(54, 162, 235, 1)",
-        borderWidth: 1,
+        borderWidth: 2,
+        errorBarColor: "#eb4034",
+        errorBarLineWidth: 2,
+        type: "barWithErrorBars",
       },
     ],
   };
@@ -39,7 +59,7 @@ const BarComponent = () => {
     switch (selectedEconomicData) {
       case "EST":
         return {
-          title: "Business Establishments (millions)",
+          title: "Business Establishments (Millions)",
           xAxisLabel: "FERC Order 1000 Regional Operators",
         };
       case "POP20":

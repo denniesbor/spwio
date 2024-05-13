@@ -2,8 +2,13 @@ import React from 'react'
 
 const Navbar = () => {
   return (
-    <div className='navbar'>US Electricty Transmission Planning Regions, Economic Characteristis and Impact under Variant Space Weather Scenarios</div>
-  )
+    <div className="navbar">
+      <h1>
+        Socio-Economic Impact from Critical National Infrastructure Failure Due
+        to Space Weather.
+      </h1>
+    </div>
+  );
 }
 
 export default Navbar

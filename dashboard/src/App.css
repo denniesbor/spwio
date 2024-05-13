@@ -117,8 +117,8 @@ p {
   margin-left: 10vw; /* Equal to sidebar width */
   margin-top: 50px; /* Equal to navbar height */
   width: calc(100% - 10vw);
-  top: 60px;
-  height: calc(100% - 60px);
+  top: 10vh;
+  height: calc(100% - 10vh);
   overflow-y: auto;
 }
 
@@ -126,24 +126,34 @@ p {
   position: fixed;
   left: 0;
   top: 0;
-  width: 100vw; /* Subtract left value for full width */
-  background-color: #005792; /* Updated color for a modern look */
+  width: 100vw;
+  background-color: #005792; 
   color: white;
-  height: 60px; /* Slightly larger for better visibility */
-  line-height: 60px; /* Center text vertically */
-  text-align: center; /* Center text horizontally */
-  font-size: 1.1em; /* Slightly larger font */
-  font-weight: 500; /* Font weight for clarity */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
-  z-index: 1000; /* Ensures navbar stays on top */
-  padding: 0 10px; /* Padding for not sticking to the edges */
+  height: 5vh;
+  line-height: 60px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 300;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 0 10px;
+}
+
+.navbar div {
+  display: inline-block;
+  text-align: center;
+}
+
+.navbar h1 {
+  font-size: 18px; /* Adjust the size to fit within the navbar */
+  margin: 0;
 }
 
 
 .main-content {
   padding: 20px;
   width: 90vw;
-  height: calc(100% - 50px); /* Adjust for navbar */
+  height: calc(100% - 10vh); /* Adjust for navbar */
   display: flex;
   flex-direction: row; /* Align children in a row */
   overflow-y: auto; /* Scrollable content */

@@ -2,7 +2,8 @@ import React from "react";
 import { useAppContext } from "../AppContext";
 
 function Footer() {
-  const { regionNames, scenarioRegions, shocksNAICS, sidebarVal } = useAppContext();
+  const { regionNames, scenarioRegions, shocksNAICS, sidebarVal } =
+    useAppContext();
   const shouldFilterRegions = scenarioRegions && scenarioRegions.length > 0;
 
   return (
@@ -34,9 +35,7 @@ function Footer() {
             This material is based upon work supported by the NSF National
             Center for Atmospheric Research, which is a major facility sponsored
             by the U.S. National Science Foundation under Cooperative Agreement
-            No. 1852977. The project upon which this website is based was funded
-            through the NSF NCAR Early-Career Faculty Innovator Program under
-            the same Cooperative Agreement.
+            No. 1852977.
           </p>
         )}
       </div>
