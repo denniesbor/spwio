@@ -31,6 +31,7 @@ tl_geojson <- st_read(file.path(geophysics_dir, "merged_line_gdf.geojson"))
 
 # Transformer nodes shapefiles
 ss_geojson <- st_read(file.path(geophysics_dir, "merged_node_gdf.geojson"))
+ss_geojson$GDP2022 <- ss_geojson$GDP2022 / 365 # Make Daily GDP
 
 # Set crs
 nerc_geojson <- st_transform(nerc_geojson, 'EPSG:4326')
@@ -62,7 +63,6 @@ subset_data <- st_intersection(state_shp_filtered, st_as_sfc(bounds))
 plot(st_geometry(pjm_geojson))
 # Plot the subsetted data on top in red
 plot(st_geometry(subset_data), add = TRUE)
-
 
 # register_google(key = "")
 
@@ -96,7 +96,7 @@ create_sf_plot <-
     
     plot2 <- ggplot(data = data) +
       geom_sf(data = boundary_data, color = "gray", size = 0.2, fill = NA, alpha=0.8) +
-      geom_sf(data = overlay_data, color = "blue", linewidth=0.4, fill = NA) +
+      geom_sf(data = overlay_data, color = "#404040", linewidth = 0.4, fill = NA, linetype = "dashed", show.legend = FALSE) +
       geom_sf(aes(size = !!sym(factor_col), color = !!sym(factor_col))) +
       scale_size_manual(values = sizing_vals, name = legend_title, breaks = labels, labels = labels) +
       scale_color_manual(values = viridis_colors, name = legend_title, breaks=labels, labels = labels) +
@@ -124,7 +124,7 @@ failure_levels <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1)
 failure_labels <- c("00-10%", "10-20%", "20-30%", "30-40%", "40-50%", 
                     "50-60%", "60-80%", "80-100%")
 
-sizing_vals = setNames((1:9), failure_labels)
+sizing_vals = setNames(0.6 * (1:9), failure_labels)
 
 ss_geojson$factor_probability_failure <- cut(ss_geojson$probability_failure, 
                                              breaks = failure_levels,
@@ -140,7 +140,6 @@ failure_probability_plot <- create_sf_plot(ss_geojson,
                                            "factor_probability_failure",
                                            failure_labels, failure_levels, sizing_vals)
 
-
 print(failure_probability_plot)
 
 # Define transformer count levels and labels
@@ -148,7 +147,7 @@ transformer_count <- c(0, 2, 3, 4, 5, 6, 7, 8, 10)
 transformer_count_lbls <- c("0-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8", "8-10")
 
 # Define sizing values from 2 to 12 in steps of 2
-sizing_vals <- setNames((1:9), transformer_count_lbls)  # Multiplying each index by 2 to create steps
+sizing_vals <- setNames(0.6 * (1:9), transformer_count_lbls)  # Multiplying each index by 2 to create steps
 
 # Convert transformer counts in your data to factors with defined levels and labels
 ss_geojson$factor_transformer_count <- cut(ss_geojson$tranformer_count,
@@ -165,17 +164,15 @@ transformer_count_plot <- create_sf_plot(ss_geojson,
                                          "The number of Transformers in the Substation",
                                          "factor_transformer_count",
                                          transformer_count_lbls, transformer_count, sizing_vals)
-
 # Print the plot
 print(transformer_count_plot)
-
 
 # Define GIC vals flowing in the transformer
 gic_levels <- c(0, 2, 4, 10, 50, 100, 200, 300, 450)
 gic_labels <- c("0-2", "2-4", "4-10", "10-50", "50-100", 
                     "100-200", "200-300", "300-450")
 
-sizing_vals <- setNames(1*(1:9), gic_labels)
+sizing_vals <- setNames(0.6*(1:9), gic_labels)
 
 ss_geojson$factor_gic_approx<- cut(ss_geojson$GIC_Approx, 
                                              breaks = gic_levels,
@@ -194,26 +191,22 @@ gic_plot <- create_sf_plot(ss_geojson,
 
 print(gic_plot)
 
-
 # Plot EST, GDP, and Substations
 # Population levels and labels for 8 categories
 pop_levels <- seq(0, 2409253, length.out = 9)  # Creates 8 equal intervals
 pop_labels <- c("0-301K", "301-602K", "602-903K", "903-1.2M", 
                 "1.2-1.5M", "1.5-1.8M", "1.8-2.1M", "2.1-2.4M")
 
-
-
 # Establishments (from 0 to 57893)
 est_levels <- seq(0, 57893, length.out = 9)  # Creates 8 equal intervals
 est_labels <- c("0-7.2K", "7.2-14.5K", "14.5-21.7K", "21.7-28.9K",
                 "28.9-36.1K", "36.1-43.4K", "43.4-50.6K", "50.6-57.9K")
 
-
-# GDP levels and labels for 8 categories, max ia 145199
-gdp_levels <- seq(0, 145200, length.out = 9)  # Creates 8 equal intervals
-gdp_labels <- c("0-18.1K", "18.1-36.3K", "36.3-54.4K", "54.4-72.6K", 
-                "72.6-90.7K", "90.7-108.9K", "108.9-127K", "127-145.2K")
-
+# Create 8 equally spaced intervals
+gdp_levels <- seq(0, 398, length.out = 9)
+# Define GDP labels
+gdp_labels <- c("0-49.6", "49.6-99.2", "99.2-148.8", "148.8-198.4", 
+                "198.4-248", "248-297.6", "297.6-347.2", "347.2-397")
 
 # Applying cut function to each variable in your dataset
 ss_geojson$factor_pop20 <- cut(ss_geojson$POP20, 
@@ -232,7 +225,7 @@ ss_geojson$factor_gdp2022 <- cut(ss_geojson$GDP2022,
                                  include.lowest = TRUE)
 
 # Population
-sizing_vals <- setNames(1*(1:9), pop_labels)
+sizing_vals <- setNames(0.6*(1:9), pop_labels)
 pop20_plot <- create_sf_plot(ss_geojson,
                              subset_data,
                              pjm_geojson,
@@ -245,7 +238,7 @@ pop20_plot <- create_sf_plot(ss_geojson,
 print(pop20_plot)
 
 # Count of Est
-sizing_vals <- setNames(1*(1:9), est_labels)
+sizing_vals <- setNames(0.6*(1:9), est_labels)
 est_plot <- create_sf_plot(ss_geojson,
                            subset_data,
                            pjm_geojson,
@@ -258,7 +251,7 @@ est_plot <- create_sf_plot(ss_geojson,
 print(est_plot)
 
 # GDP Plot
-sizing_vals <- setNames(1*(1:9), gdp_labels)
+sizing_vals <- setNames(0.6*(1:9), gdp_labels)
 gdp_plot <- create_sf_plot(ss_geojson,
                            subset_data,
                            pjm_geojson,
@@ -274,7 +267,7 @@ print(gdp_plot)
 combined_plot_1 <- transformer_count_plot/ gic_plot / failure_probability_plot / pop20_plot / est_plot / gdp_plot
 # Adjust the layout
 combined_plot_1 <- combined_plot_1 + plot_layout(ncol = 2, nrow = 3) &
-  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+  theme(plot.margin = unit(c(0, 0.6, 0, 0), "cm"))
 print(combined_plot_1)
 # File path
 file_path_1 = file.path(folder,"figures", "geophysical_1.png")
@@ -296,10 +289,10 @@ create_tl_plot <-
     viridis_colors <- viridis::viridis(n = num_groups, direction = -1, option = "plasma")
     
     plot2 <- ggplot(data = data) +
-      geom_sf(data = boundary_data, color = "gray", size = 0.2, fill = NA, alpha=0.8) +
-      geom_sf(data = overlay_data, color = "blue", linewidth=0.4, fill = NA) +
-      geom_sf(aes(linetype = "solid", color = !!sym(factor_col))) +
-      scale_color_manual(values = viridis_colors, name = legend_title, breaks=labels, labels = labels) +
+      geom_sf(data = boundary_data, color = "gray", size = 0.2, fill = NA, alpha = 0.8) +
+      geom_sf(data = overlay_data, color = "#404040", linewidth = 0.4, fill = NA, linetype = "dashed", show.legend = FALSE) +
+      geom_sf(aes(color = !!sym(factor_col)), show.legend = TRUE) +
+      scale_color_manual(values = viridis_colors, name = legend_title, breaks = labels, labels = labels) +
       labs(title = plot_title, subtitle = plot_subtitle) +
       theme_void() +
       theme(
@@ -312,13 +305,13 @@ create_tl_plot <-
         legend.text = element_text(size = 6),
         legend.title = element_text(size = 7),
         legend.key.height = unit(2, "mm"),
-        legend.key.width = unit(0.01, "npc"),
+        legend.key.width = unit(0.02, "npc"),
         text = element_text(family = "Times New Roman")
-      )
+      ) +
+      guides(linetype = "none")  # Remove linetype from legend
     
     return(plot2)
   }
-
 
 # CREATE LABELS AND LEVELS
 
@@ -364,7 +357,7 @@ tl_geojson$factor_voltage_class <- cut(tl_geojson$VOLTAGE,
 
 # Plot 1: Unique Voltages
 sizing_vals <- setNames(1*(1:9), voltage_class_labels)
-v_class_plot <- create_sf_plot(tl_geojson,
+v_class_plot <- create_tl_plot(tl_geojson,
                                subset_data,
                                pjm_geojson,
                                "Class (kV)",
@@ -377,7 +370,7 @@ print(v_class_plot)
 
 # Plot 2: E Fields
 sizing_vals <- setNames(1*(1:9), e_field_labels)
-e_field_plot <- create_sf_plot(tl_geojson,
+e_field_plot <- create_tl_plot(tl_geojson,
                                subset_data,
                                pjm_geojson,
                                "E (V/kM)",
@@ -390,7 +383,7 @@ print(e_field_plot)
 
 # Plot 3: Line Voltages
 sizing_vals <- setNames(1*(1:9), voltage_labels)
-voltage_plot <- create_sf_plot(tl_geojson,
+voltage_plot <- create_tl_plot(tl_geojson,
                                subset_data,
                                pjm_geojson,
                                "Voltages (V)",
@@ -403,7 +396,7 @@ print(voltage_plot)
 
 # Plot 4: Line Current Sources
 sizing_vals <- setNames(1*(1:9), i_labels)
-i_plot <- create_sf_plot(tl_geojson,
+i_plot <- create_tl_plot(tl_geojson,
                          subset_data,
                          pjm_geojson,
                          "Current (A)",
@@ -418,7 +411,7 @@ print(i_plot)
 combined_plot_2 <- v_class_plot/ e_field_plot /voltage_plot / i_plot
 # Adjust the layout
 combined_plot_2 <- combined_plot_2 + plot_layout(ncol = 2, nrow = 2) &
-  theme(plot.margin = unit(c(0, 0, 0, 0), "cm"))
+  theme(plot.margin = unit(c(0, 0.6, 0, 0.6), "cm"))
 print(combined_plot_2)
 # File path
 file_path_2 = file.path(folder,"figures", "geophysical_2.png")
